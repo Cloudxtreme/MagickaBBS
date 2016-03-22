@@ -1,0 +1,306 @@
+.\" $Id: jamlib.3,v 1.1 2002/11/09 00:37:16 raorn Exp $
+.\"
+.\"  JAM(mbp) - Copyright 1993 Joaquim Homrighausen, Andrew Milner,
+.\"                            Mats Birch, Mats Wallin.
+.\"                            ALL RIGHTS RESERVED
+.TH JAMLIB 3 2002-11-07 "" "JAM subroutine library"
+.SH NAME
+jamlib \- a JAM subroutine library
+.SH DESCRIPTION
+These are a collection of subroutines that encapsulate much of the
+format\-specific and tedious details of the JAM message base format. The
+idea is that application programmers by using these routines can
+concentrate on the more high\-level issues of their programs instead of
+worrying about their JAM routines.
+.PP
+I [Bjorn Stenberg] wrote these routines primarily because I needed 
+them myself. I was trying to implement JAM support in my FrexxLink BBS 
+system and was frustrated by the poor level of documentation supplied in 
+the JAMAPI archive distributed by the JAM authors. Finally, I dove into 
+the JAMAPI source code in a desperate attempt at finding out how to use it. 
+To my despair, I discovered that the JAMAPI is targeted at a very low level. 
+I would need to implement a lot of JAM\-handling code into my own program.
+.PP
+This library is an attempt to do two things:
+.PP
+Firstly, provide an, at least sparingly, \fIdocumented\fP API, allowing
+application programmers to easily implement JAM into their programs.
+.PP
+Secondly, raise the level of functionality above that of the original
+JAMAPI package, so that the application programmer does not have to learn
+and understand all the internals of the JAM message base format to
+implement support for it.
+.PP
+I have not succeded completely on any of the two points, of course.
+Documentation can never be too good, and there are still a few things about
+JAM you must know in order to use it. But I think I have made it somewhat
+easier than perhaps was the case before.
+.sp
+.SS "The Source Code"
+I made a point of making this library as system independant as I could.
+Only one function needs to be altered when porting this to another system:
+The file locking. ANSI C does not include file locking so there is not much
+I can do about it.
+.PP
+The choice of C over C++ is a part of this philosophy aswell. More
+systems have C compilers than C++ compilers, and more people know C than
+C++. Also, converting this library to a C++ class should be fairly simple.
+If you do, send me a copy.
+.PP
+I use some naming conventions throughout the code and in the examples.
+These are invented by myself as a reaction to the stunningly ugly and
+hard\-to\-read Hungarian Notation promoted by some people. The rules of my
+notation are simple:
+.PP
+.TP
+\(bu
+All library\-global identifiers are prefixed with \'\fBJAM_\fP\'. All
+file\-global identifiers are prefixed with \'\fBjam_\fP\'. Local
+identifiers do not have prefixes.
+.TP
+\(bu
+All variables have a suffix describing their basic type. Suffixes used
+in this library are:
+.nf
+  _I \- integer                        (int      Example_I)
+  _C \- character                      (char     Example_C)
+  _S \- struct                         (struct   Example_S)
+  _P \- pointer                        (void*    Example_P)
+  _A \- array
+.fi
+.sp
+Suffixes are then combined, to show the correct type:
+.nf
+  _PI  \- pointer to integer           (int*     Example_PI)
+  _PC  \- pointer to char              (char*    Example_PC)
+  _AC  \- array of char                (char     Example_AC[x])
+  _PPS \- pointer to pointer to struct (struct** Example_PPS)
+.fi
+.TP
+\(bu
+Functions do not have suffixes
+.PP
+The whole idea is that it is quicker to read and comprehend a
+variable called \'\fIText_PC\fP\' than one called \'\fIpszText\fP\'.
+We read from left to right, and thus the most important
+information \- the name \- should be the leftmost data in the
+word. The variable type is additional information and is
+therefore added to the end where it does not disturb the reader.
+.sp
+.SS "The Functions"
+The library is divided into five groups:
+.TP
+\(bu
+Message base functions
+.TP
+\(bu
+Message functions
+.TP
+\(bu
+Subfield functions
+.TP
+\(bu
+LastRead functions
+.TP
+\(bu
+Miscellanous functions
+.sp
+.SS "Message base functions"
+These functions handle JAM message bases, by opening, locking, scanning
+etc the contents of a message base. These are fairly straight\-forward and
+simple routines that you should have little, if any, trouble with.
+.PP
+A message base is identified by a message base handle, which is obtained
+from either
+.BR JAM_OpenMB (3)
+or
+.BR JAM_CreateMB (3).
+All functions that read or
+write from the message base take this handle as parameter, to know which
+message base to use.
+.PP
+.TP
+.BR JAM_OpenMB (3)
+Open a message base
+.TP
+.BR JAM_CloseMB (3)
+Close message base
+.TP
+.BR JAM_CreateMB (3)
+Create a new message base
+.TP
+.BR JAM_RemoveMB (3)
+Remove a message base
+.TP
+.BR JAM_LockMB (3)
+Lock message base for exclusive access
+.TP
+.BR JAM_UnlockMB (3)
+Unlock message base
+.TP
+.BR JAM_ReadMBHeader (3)
+Read message base header
+.TP
+.BR JAM_WriteMBHeader (3)
+Write message base header
+.TP
+.BR JAM_FindUser (3)
+Find message to a user
+.TP
+.BR JAM_GetMBSize (3)
+Get the number of messages in message base
+.sp
+.SS "Message functions"
+These functions handle individual JAM messages. A JAM message contains of
+three parts:
+.sp
+.TP
+\(bu
+Message Header
+.TP
+\(bu
+Message Header Subfields
+.TP
+\(bu
+Message Text
+.PP
+The message header is a simple C structure and the message text is a
+simple text buffer.
+.PP
+The subfields, however, are a bit more tricky. These contain
+everything that is not covered by the header, including the
+\fBTO\fP, \fBFROM\fP, \fBSUBJECT\fP fields, origin and
+destination network adresses etc. There can be an unlimited
+number of subfields to a message.
+.PP
+In this routine library the subfields are encapsulated by a
+\'\fIsubfield packet\fP\', which is handled by its own set of
+routines. See a later section of this document for an
+explanation of those.
+.PP
+.TP
+.BR JAM_ReadMsgHeader (3)
+Read a message\'s header and its subfields
+.TP
+.BR JAM_ReadMsgText (3)
+Read a message\'s text
+.TP
+.BR JAM_AddMessage (3)
+Add a message to message base
+.TP
+.BR JAM_AddEmptyMessage (3)
+Add a empty message entry to a message base
+.TP
+.BR JAM_ChangeMsgHeader (3)
+Change a message\'s header
+.TP
+.BR JAM_ClearMsgHeader (3)
+Clear a message header structure
+.TP
+.BR JAM_DeleteMessage (3)
+Delete message from messagebase
+.sp
+.SS "Subfield functions"
+As described earlier, a subfield is a part of the message header. Due to
+the complexity of the different network types in use, it is not feasible to
+try and cram all data into one header struct. Therefore, JAM uses a fairly
+small header struct and instead marks all additional data fields as
+\'\fIsubfields\fP\'.
+.PP
+In order to make life a little more easy, I have used the concept of a
+container for all subfields. I call it a \'\fISubfield Packet\fP\'. It is
+identified by a struct pointer, and should be looked upon as a file or a
+list that you manipulate via the following five functions:
+.PP
+.TP
+.BR JAM_NewSubPacket (3)
+Create a new subfield packet
+.TP
+.BR JAM_DelSubPacket (3)
+Delete a subfield packet
+.TP
+.BR JAM_GetSubfield (3)
+Get a subfield from a subfield packet (not reentrant)
+.TP
+.BR JAM_GetSubfield_R (3)
+Get a subfield from a subfield packet (reentrant)
+.TP
+.BR JAM_PutSubfield (3)
+Put a subfield into a subfield packet
+.sp
+.SS "LastRead functions"
+JAM implements the often\-used concept of high water marking for
+remembering which user read how many messages in each area.
+.PP
+Personally I think this concept stinks, since it does not store *which*
+messages a user has read, only the number of the highest message he has
+read. But since it\'s a part of JAM and it\'s fairly straightforward and
+easy, I\'ve implemented two support functions for it.
+.PP
+I would, however, strongly recommend all BBS programmers to use proper
+message mapping systems instead, so your users can read their messages in
+whatever order they wish.
+.PP
+.TP
+.BR JAM_ReadLastRead (3)
+Read a lastread record
+.TP
+.BR JAM_WriteLastRead (3)
+Write a lastread record
+.sp
+.SS "Miscellanous functions"
+.PP
+.TP
+.BR JAM_Crc32 (3)
+Calculate CRC32 on a block of data
+.TP
+.BR JAM_Errno (3)
+Specify I/O error
+.sp
+.SH HISTORY
+JAMLIB 1.0 was originally released by Bjorn Stenberg 1996\-03\-06.
+Since the original license did not permit modification of the
+library, Johan Billing contacted Bjorn Stenberg and asked him to
+change the license. Bjorn Stenberg agreed to change the license
+to the GNU Lesser General Public
+License 1999\-12\-21.
+.PP
+After that, some minor additions and bug fixes were made by Johan
+Billing and JAMLIB 1.1 was released under the new license.
+.PP
+Somewhen, after 1.2 release or so, Sir Raorn moved JAMlib to GNU
+autotools, again with some minor additions an bugfixes.
+.SH AUTHOR
+All original code except for the CRC32 routine was written by Bjorn
+Stenberg. The CRC32 code was rewritten by Johan Billing for JAMLIB 1.1
+to replace the original CRC32 code whose origin and copyright was unclear.
+The jam.h header file is a compilation of the best from the various header
+files in the JAMAPI package with some of additions by Bjorn Stenberg as well.
+Additions and modifications by Johan Billing and Sir Raorn.
+.PP
+The JAM message base proposal is:
+.sp
+.nf
+JAM(mbp) \- Copyright 1993 Joaquim Homrighausen, Andrew Milner,
+                          Mats Birch, Mats Wallin.
+                          ALL RIGHTS RESERVED
+.fi
+.PP
+For questions about JAMLIB, please contact:
+.sp
+Sir Raorn <raorn@altliux.ru>
+.sp
+Johan Billing <billing@df.lth.se>
+.sp
+If you wish to contact Bjorn Stenberg, his current e\-mail
+address (as of 1999\-12\-21) is bjorn@haxx.nu.
+.PP
+This manual page was created by Sir Raorn <raorn@altlinux.ru>,
+based on original JAMlib documentation by Bjorn Stenberg
+<bjorn@haxx.nu> and Johan Billing <billing@df.lth.se>.
+.SH "SEE ALSO"
+If you are extra curious about the JAM message format, I suggest
+you get a hold of an archive called \fIJAMAPI.ARJ\fP. That archive
+contains a file called JAM.DOC which is the file I have used as
+reference for the development of these routines.
+.\" vim: ft=nroff

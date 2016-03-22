@@ -1,0 +1,52 @@
+.\" $Id: JAM_ReadMBHeader.3,v 1.1 2002/11/09 00:37:16 raorn Exp $
+.\"
+.TH JAM_ReadMBHeader 3 2002-11-07 "" "JAM subroutine library"
+.SH NAME
+JAM_ReadMBHeader \- Read message base header
+.SH SYNOPSIS
+.nf
+.B #include <jamlib/jam.h>
+
+.BI "int JAM_ReadMBHeader(s_JamBase*       " Base_PS ","
+.BI "                     s_JamBaseHeader* " Header_PS ");"
+.RE
+.fi
+.SH DESCRIPTION
+Reads the message base header from the start of the JAM header
+file.
+.SS Arguments
+.TP
+.I Base_PS
+The message base to use
+.TP
+.I Header_PS
+A pointer to a base header structure where the base header will be stored.
+.SH "RETURN VALUE"
+.TP
+.B 0
+if successful
+.TP
+.B JAM_IO_ERROR
+if an I/O error occured. See
+.BR JAM_Errno (3)
+.TP
+.B JAM_BAD_PARAM
+if \fIBase_PS\fP or \fIHeader_PS\fP is NULL
+.SH EXAMPLES
+.nf
+s_JamBaseHeader BaseHeader_S;
+int             Result_I;
+
+Result_I = JAM_ReadMBHeader(Base_PS, &BaseHeader_S);
+if (Result_I)
+  printf("JAM_ReadMBHeader returned %d.\\n", Result_I);
+.fi
+.SH AUTHOR
+This manual page was created by Sir Raorn <raorn@altlinux.ru>,
+based on original JAMlib documentation by Bjorn Stenberg
+<bjorn@haxx.nu> and Johan Billing <billing@df.lth.se>.
+.SH SEE ALSO
+.BR jamlib (3),
+.BR JAM_WriteMBHeader (3),
+.BR JAM_Errno (3)
+.\" vim: ft=nroff

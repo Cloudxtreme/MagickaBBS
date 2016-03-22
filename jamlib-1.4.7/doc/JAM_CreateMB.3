@@ -1,0 +1,69 @@
+.\" $Id: JAM_CreateMB.3,v 1.1 2002/11/09 00:37:16 raorn Exp $
+.\"
+.TH JAM_CreateMB 3 2002-11-07 "" "JAM subroutine library"
+.SH NAME
+JAM_CreateMB \- Create a new message base
+.SH SYNOPSIS
+.nf
+.B #include <jamlib/jam.h>
+
+.BI "int JAM_CreateMB(uchar*      " Basename_PC ","
+.BI "                 ulong       " BaseMsg_I ","
+.BI "                 s_JamBase** " NewBase_PPS ");"
+.RE
+.fi
+.SH DESCRIPTION
+Creates the necessary files for a new message base and writes a
+new message base header.
+.PP
+If the message base already exists, its contents are destroyed.
+.SS Arguments
+.TP
+.I Basename_PC
+The path and base filename of the new message base.
+.TP
+.I BaseMsg_I
+The base message number (first message #) for the new message base. This number
+is used when calculating new messages\' unique message number. It should not be
+set to 0.
+.TP
+.I NewBase_PPS
+A pointer to a message base handle where the new message base handle will be
+written. On error you must
+.BR free (3)
+this memory if (*\fINewBase_PPS\fP) not NULL.
+.SH "RETURN VALUE"
+.TP
+.B 0
+if successful
+.TP
+.B 
+JAM_IO_ERROR
+if an I/O error occured. See 
+.BR JAM_Errno (3)
+.TP
+.B JAM_LOCK_FAILED
+if the newly created message base can not be locked.
+See
+.BR JAM_Errno (3)
+.TP
+.B JAM_BAD_PARAM
+if \fIBaseMsg_I\fR is 0 or \fINewBase_PPS\fR is NULL
+.SH EXAMPLES
+.nf
+int Result_I;
+
+Result_I = JAM_CreateMB("/some/where/mybase", 1, &Base_PS);
+if (Result_I)
+  printf("JAM_CreateMB returned %d.\\n", Result_I);
+.fi
+.SH AUTHOR
+This manual page was created by Sir Raorn <raorn@altlinux.ru>,
+based on original JAMlib documentation by Bjorn Stenberg
+<bjorn@haxx.nu> and Johan Billing <billing@df.lth.se>.
+.SH SEE ALSO
+.BR jamlib (3),
+.BR JAM_OpenMB (3),
+.BR JAM_CloseMB (3),
+.BR JAM_Errno (3)
+.\" vim: ft=nroff

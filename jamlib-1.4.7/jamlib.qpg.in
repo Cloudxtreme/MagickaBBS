@@ -1,0 +1,119 @@
+<QPG:Generation>
+   <QPG:Options>
+      <QPG:User unattended="yes" verbosity="0" listfiles="yes"/>
+      <QPG:Defaults type="qnx_package"/>
+      <QPG:Source></QPG:Source>
+      <QPG:Release date="today" number="+"/>
+      <QPG:Build></QPG:Build>
+      <QPG:FileSorting strip="yes"/>
+      <QPG:Package targets="standart"/>
+      <QPG:Repository generate="yes"/>
+      <QPG:FinalDir></QPG:FinalDir>
+      <QPG:Cleanup></QPG:Cleanup>
+   </QPG:Options>
+
+   <QPG:Responsible>
+      <QPG:Company>QNX.ORG.RU Community</QPG:Company>
+      <QPG:Department></QPG:Department>
+      <QPG:Group></QPG:Group>
+      <QPG:Team>QNX.ORG.RU Team</QPG:Team>
+      <QPG:Employee>Mike Gorchak</QPG:Employee>
+      <QPG:EmailAddress>mike@malva.ua</QPG:EmailAddress>
+   </QPG:Responsible>
+
+   <QPG:Values>
+      <QPG:Files>
+         <QPG:Add file="./COPYING" install="LicenseUrl/" handling="repdata"/>
+         <QPG:Add permissions="0755" file="./src/.libs/libjam.so.2" install="/opt/lib/"/>
+         <QPG:Add filetype="symlink" file="libjam.so" install="/opt/lib/" linkto="libjam.so.2"/>
+         <QPG:Add permissions="0644" file="./src/.libs/libjam.a" install="/opt/lib/"/>
+         <QPG:Add permissions="0644" file="./AUTHORS" install="/usr/doc/jamlib/"/>
+         <QPG:Add permissions="0644" file="./COPYING" install="/usr/doc/jamlib/"/>
+         <QPG:Add permissions="0644" file="./Changes" install="/usr/doc/jamlib/"/>
+         <QPG:Add permissions="0644" file="./INSTALL" install="/usr/doc/jamlib/"/>
+         <QPG:Add permissions="0644" file="./README" install="/usr/doc/jamlib/"/>
+         <QPG:Add permissions="0644" file="./jamlib.doc" install="/usr/doc/jamlib/"/>
+         <QPG:Add permissions="0644" file="./include/jamlib/jam.h" install="/opt/include/jamlib/"/>
+         <QPG:Add permissions="0644" file="./doc/JAM_AddEmptyMessage.3" install="/opt/share/man/man3/"/>
+         <QPG:Add permissions="0644" file="./doc/JAM_AddMessage.3" install="/opt/share/man/man3/"/>
+         <QPG:Add permissions="0644" file="./doc/JAM_ChangeMsgHeader.3" install="/opt/share/man/man3/"/>
+         <QPG:Add permissions="0644" file="./doc/JAM_ClearMsgHeader.3" install="/opt/share/man/man3/"/>
+         <QPG:Add permissions="0644" file="./doc/JAM_CloseMB.3" install="/opt/share/man/man3/"/>
+         <QPG:Add permissions="0644" file="./doc/JAM_Crc32.3" install="/opt/share/man/man3/"/>
+         <QPG:Add permissions="0644" file="./doc/JAM_CreateMB.3" install="/opt/share/man/man3/"/>
+         <QPG:Add permissions="0644" file="./doc/JAM_DelSubPacket.3" install="/opt/share/man/man3/"/>
+         <QPG:Add permissions="0644" file="./doc/JAM_DeleteMessage.3" install="/opt/share/man/man3/"/>
+         <QPG:Add permissions="0644" file="./doc/JAM_Errno.3" install="/opt/share/man/man3/"/>
+         <QPG:Add permissions="0644" file="./doc/JAM_FindUser.3" install="/opt/share/man/man3/"/>
+         <QPG:Add permissions="0644" file="./doc/JAM_GetMBSize.3" install="/opt/share/man/man3/"/>
+         <QPG:Add permissions="0644" file="./doc/JAM_GetSubfield.3" install="/opt/share/man/man3/"/>
+         <QPG:Add permissions="0644" file="./doc/JAM_GetSubfield_R.3" install="/opt/share/man/man3/"/>
+         <QPG:Add permissions="0644" file="./doc/JAM_LockMB.3" install="/opt/share/man/man3/"/>
+         <QPG:Add permissions="0644" file="./doc/JAM_NewSubPacket.3" install="/opt/share/man/man3/"/>
+         <QPG:Add permissions="0644" file="./doc/JAM_OpenMB.3" install="/opt/share/man/man3/"/>
+         <QPG:Add permissions="0644" file="./doc/JAM_PutSubfield.3" install="/opt/share/man/man3/"/>
+         <QPG:Add permissions="0644" file="./doc/JAM_ReadLastRead.3" install="/opt/share/man/man3/"/>
+         <QPG:Add permissions="0644" file="./doc/JAM_ReadMBHeader.3" install="/opt/share/man/man3/"/>
+         <QPG:Add permissions="0644" file="./doc/JAM_ReadMsgHeader.3" install="/opt/share/man/man3/"/>
+         <QPG:Add permissions="0644" file="./doc/JAM_ReadMsgText.3" install="/opt/share/man/man3/"/>
+         <QPG:Add permissions="0644" file="./doc/JAM_RemoveMB.3" install="/opt/share/man/man3/"/>
+         <QPG:Add permissions="0644" file="./doc/JAM_UnlockMB.3" install="/opt/share/man/man3/"/>
+         <QPG:Add permissions="0644" file="./doc/JAM_WriteLastRead.3" install="/opt/share/man/man3/"/>
+         <QPG:Add permissions="0644" file="./doc/JAM_WriteMBHeader.3" install="/opt/share/man/man3/"/>
+         <QPG:Add permissions="0644" file="./doc/jamlib.3" install="/opt/share/man/man3/"/>
+      </QPG:Files>
+      <QPG:PackageFilter>
+         <QPM:PackageManifest>
+            <QPM:PackageDescription>
+               <QPM:PackageType>Library</QPM:PackageType>
+               <QPM:PackageName>@PACKAGE_NAME@</QPM:PackageName>
+               <QPM:PackageReleaseNumber>1</QPM:PackageReleaseNumber>
+               <QPM:PackageRepository>http://qnx.org.ru/repository</QPM:PackageRepository>
+               <QPM:FileVersion>1.01</QPM:FileVersion>
+            </QPM:PackageDescription>
+            <QPM:ProductDescription>
+               <QPM:ProductName>jamlib</QPM:ProductName>
+               <QPM:ProductIdentifier>jamlib</QPM:ProductIdentifier>
+               <QPM:ProductEmail>raorn@altlinux.ru</QPM:ProductEmail>
+               <QPM:VendorName>public</QPM:VendorName>
+               <QPM:VendorInstallName>public</QPM:VendorInstallName>
+               <QPM:VendorURL>http://jamlib.sourceforge.net</QPM:VendorURL>
+               <QPM:VendorEmbedURL/>
+               <QPM:VendorEmail>raorn@altlinux.ru</QPM:VendorEmail>
+               <QPM:AuthorName>Alexey I. Froloff</QPM:AuthorName>
+               <QPM:AuthorURL>http://jamlib.sourceforge.net</QPM:AuthorURL>
+               <QPM:AuthorEmbedURL/>
+               <QPM:AuthorEmail>raorn@altlinux.ru</QPM:AuthorEmail>
+               <QPM:ProductIconSmall/>
+               <QPM:ProductIconLarge/>
+               <QPM:ProductDescriptionShort>These are a collection of subroutines that encapsulate much of the format-specific and tedious details of the JAM message base format.</QPM:ProductDescriptionShort>
+               <QPM:ProductDescriptionLong>These are a collection of subroutines that encapsulate much of the format-specific and tedious details of the JAM message base format. The idea is that application programmers by using these routines can concentrate on the more high-level issues of their programs instead of worrying about their JAM routines.</QPM:ProductDescriptionLong>
+               <QPM:ProductDescriptionURL>http://jamlib.sourceforge.net</QPM:ProductDescriptionURL>
+               <QPM:ProductDescriptionEmbedURL/>
+            </QPM:ProductDescription>
+            <QPM:ReleaseDescription>
+               <QPM:ReleaseVersion>@PACKAGE_VERSION@</QPM:ReleaseVersion>
+               <QPM:ReleaseUrgency>Medium</QPM:ReleaseUrgency>
+               <QPM:ReleaseStability>Stable</QPM:ReleaseStability>
+               <QPM:ReleaseNoteMinor/>
+               <QPM:ReleaseNoteMajor/>
+               <QPM:ReleaseBuild>1</QPM:ReleaseBuild>
+               <QPM:CountryExclude/>
+               <QPM:ReleaseCopyright>GNU Lesser General Public License</QPM:ReleaseCopyright>
+            </QPM:ReleaseDescription>
+            <QPM:ContentDescription>
+               <QPM:ContentTopic>Software Development/Libraries and Extensions/C Libraries</QPM:ContentTopic>
+               <QPM:ContentKeyword>FIDO, FTN, Jam</QPM:ContentKeyword>
+               <QPM:Processor/>
+               <QPM:TargetProcessor/>
+               <QPM:DisplayEnvironment>Console</QPM:DisplayEnvironment>
+               <QPM:TargetAudience>Developer</QPM:TargetAudience>
+            </QPM:ContentDescription>
+            <QPM:LicenseUrl>repdata://LicenseUrl/COPYING</QPM:LicenseUrl>
+            <QPM:ProductInstallationDependencies>
+               <QPM:ProductRequirements/>
+            </QPM:ProductInstallationDependencies>
+         </QPM:PackageManifest>
+      </QPG:PackageFilter>
+   </QPG:Values>
+</QPG:Generation>

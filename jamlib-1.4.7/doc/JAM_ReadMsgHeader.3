@@ -1,0 +1,72 @@
+.\" $Id: JAM_ReadMsgHeader.3,v 1.1 2002/11/09 00:37:16 raorn Exp $
+.\"
+.TH JAM_ReadMsgHeader 3 2002-11-07 "" "JAM subroutine library"
+.SH NAME
+JAM_ReadMsgHeader \- Read a message\'s header and its subfields
+.SH SYNOPSIS
+.nf
+.B #include <jamlib/jam.h>
+
+.BI "int JAM_ReadMsgHeader(s_JamBase*       " Base_PS ","
+.BI "                      ulong            " MsgNo_I ","
+.BI "                      s_JamMsgHeader*  " Header_PS ","
+.BI "                      s_JamSubPacket** " Subfields_PPS ");"
+.RE
+.fi
+.SH DESCRIPTION
+Reads a message header and (optionally) the message header
+subfields.
+.SS Arguments
+.TP
+.I Base_PS
+The message base to use
+.TP
+.I MsgNo_I
+The message number, i.e. the absolute position of the message in the message
+base. Message 0 is the first message.
+.TP
+.I Header_PS
+A pointer to a message header structure where the message header will be
+stored.
+.TP
+.I Subfields_PPS
+A pointer to a subpacket pointer, where the subfield packet handle will be
+stored.  If this parameter is NULL, no subfields are read.
+.SH "RETURN VALUE"
+.TP
+.B 0
+if successful
+.TP
+.B JAM_IO_ERROR
+if an I/O error occured. See
+.BR JAM_Errno (3)
+.TP
+.B JAM_NO_MEMORY
+if a memory allocation failed
+.TP
+.B JAM_NO_MESSAGE
+if message has been removed
+.TP
+.B JAM_CORRUPT_MSG
+if message subfields are corrupted
+.SH EXAMPLES
+.nf
+s_JamMsgHeader  Header_S;
+s_JamSubPacket* SubPack_PS
+int             Result_I;
+
+Result_I = JAM_ReadMsgHeader(0, &Header_S, &SubPack_PS);
+if (Result_I)
+  printf("JAM_ReadMsgHeader returned %d.\\n", Result_I);
+.fi
+.SH AUTHOR
+This manual page was created by Sir Raorn <raorn@altlinux.ru>,
+based on original JAMlib documentation by Bjorn Stenberg
+<bjorn@haxx.nu> and Johan Billing <billing@df.lth.se>.
+.SH SEE ALSO
+.BR jamlib (3),
+.BR JAM_AddMessage (3),
+.BR JAM_AddEmptyMessage (3),
+.BR JAM_ChangeMsgHeader (3),
+.BR JAM_Errno (3)
+.\" vim: ft=nroff

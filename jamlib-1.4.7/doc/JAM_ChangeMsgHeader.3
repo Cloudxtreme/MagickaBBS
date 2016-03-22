@@ -1,0 +1,75 @@
+.\" $Id: JAM_ChangeMsgHeader.3,v 1.1 2002/11/09 00:37:16 raorn Exp $
+.\"
+.TH JAM_ChangeMsgHeader 3 2002-11-07 "" "JAM subroutine library"
+.SH NAME
+JAM_ChangeMsgHeader \- Change a message's header
+.SH SYNOPSIS
+.nf
+.B #include <jamlib/jam.h>
+
+.BI "int JAM_ChangeMsgHeader(s_JamBase*      " Base_PS ","
+.BI "                        ulong           " MsgNo_I ","
+.BI "                        s_JamMsgHeader* " Header_PS ");"
+.RE
+.fi
+.SH DESCRIPTION
+Writes over an old message header with a new one. Only the header \-
+not the subfields \- can be changed due to the subfields\' dynamic
+size.
+.PP
+If message have \fBMSG_DELETED\fP attribute set, \fIUserCRC\fP field in index
+and \fIActiveMsgs\fP in base header are also updated.
+.SS Arguments
+.TP
+.I Base_PS
+The message base to use
+.TP
+.I MsgNo_I
+The absolute message number. Message #0 is the first in the message base.
+.TP
+.I Header_PS
+A pointer to the header structure to write.
+.SH "RETURN VALUE"
+.TP
+.B 0
+if successful
+.TP
+.B JAM_IO_ERROR
+if an I/O error occured. See
+.BR JAM_Errno (3)
+.TP
+.B JAM_NOT_LOCKED
+if the message base is not locked
+.SH EXAMPLES
+.nf
+s_JamMsgHeader  Header_S;
+int             Result_I;
+
+/* [lock the message base] */
+
+Result_I = JAM_ReadMsgHeader(Base_PS, 0, &Header_S, NULL);
+if (Result_I)
+  printf("JAM_ReadMsgHeader returned %d.\\n", Result_I);
+
+Header_S.TimesRead++;
+
+Result_I = JAM_ChangeMsgHeader(Base_PS, 0, &Header_S);
+if (Result_I)
+  printf("JAM_ChangeMsgHeader returned %d.\\n", Result_I);
+
+/* [unlock the message base] */
+.fi
+.SH NOTES
+Use this function with caution. It is easy to corrupt a
+message by giving it an incorrect header.
+.SH AUTHOR
+This manual page was created by Sir Raorn <raorn@altlinux.ru>,
+based on original JAMlib documentation by Bjorn Stenberg
+<bjorn@haxx.nu> and Johan Billing <billing@df.lth.se>.
+.SH SEE ALSO
+.BR jamlib (3),
+.BR JAM_ReadMsgHeader (3),
+.BR JAM_ClearMsgHeader (3),
+.BR JAM_LockMB (3),
+.BR JAM_Errno (3)
+.\" vim: ft=nroff

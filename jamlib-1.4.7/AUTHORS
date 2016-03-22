@@ -1,0 +1,8 @@
+The jamlib itself:
+  Bj”rn Stenberg <Bjorn.Stenberg@sth.frontec.se>
+
+Some modification an bugfixes:
+  Johan Billing <billing@df.lth.se>
+
+RPM version and autoconf/automake/libtool adaptations:
+  Sir Raorn <raorn@binec.ru>

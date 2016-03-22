@@ -1,0 +1,71 @@
+Changes since version 1.4:
+
+ * Fixed memory leaks in messagebase and subfields operations
+
+ * Added some sanity checks. Documentation updated.
+
+ * Compile-time configurable file locking method - lockf(3) vs. fcntl(2).
+
+ * Fixed infinite loop in JAM_CreateMB that happens if newly
+   created messagebase can not be locked.
+
+ * Eliminated (I hope) compiler warnings about uchar/ulong/ushort
+   on FreeBSD.
+
+ * QNX support.
+
+Changes since version 1.3:
+
+ * Win32 support via autoconf
+
+ * JAM_ChangeMsgHeader() now updates UserCRC in index and ActiveMsgs
+   in header if message's Attribute contains MSG_DELETED.
+
+ * New function JAM_DeleteMessage() - delete message from
+   messagebase by setting HdrOffset and UserCRC to 0xFFFFFFFF.
+
+Changes since version 1.2:
+
+ * JAM_AddMessage() would fail when trying to add an empty message
+   to the messagebase under Linux. Fixed.
+
+ * Moved to GNU autotools
+
+Changes since version 1.1:
+
+ * Since JAM_GetSubField() is not reentrant and cannot be used in 
+   multi-threaded applications, JAM_GetSubField_R() was added as a
+   replacement for cases where a reentrant function is needed.   
+
+Changes since varsion 1.0:
+
+ * Added support for Win32 and Linux
+
+ * Added JAM_AddEmptyMessage()
+
+ * Rewrote the Makefiles
+
+ * Rewrote the CRC32 routine
+
+ * Fixed broken JAM_FindUser()
+
+ * Fixed broken JAM_GetSubfield()
+
+ * Changed JAM_OpenMB so that files are opened in binary mode. This is
+   necessary to use JAMLIB under Windows.
+ 
+ * Improved JAM_ReadMsgHeader() to give the error JAM_NO_MESSAGE if
+   the message no longer exists in the messagebase and JAM_CORRUPT_MSG
+   if the subfields of the message have been corrupted.
+
+ * Improved portability by changing JAMLIB so that it no longer reads
+   and writes stuctures directly using fread() and fwrite().
+
+ * Improved ANSI-C compatibilty by no longer including the non-ANSI
+   header file memory.h and using feof() to check for EOF instead of
+   errno == EPASTEOF.
+
+ * Added an #ifdef so that ushort and ulong are no longer defined in
+   jam.h when compiling under Linux. These are normally already defined 
+   in the standard header files.
+

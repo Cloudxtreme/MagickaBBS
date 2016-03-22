@@ -1,0 +1,57 @@
+.\" $Id: JAM_OpenMB.3,v 1.1 2002/11/09 00:37:16 raorn Exp $
+.\"
+.TH JAM_OpenMB 3 2002-11-07 "" "JAM subroutine library"
+.SH NAME
+JAM_OpenMB \- Open a message base
+.SH SYNOPSIS
+.nf
+.B #include <jamlib/jam.h>
+.sp
+.BI "int JAM_OpenMB(uchar* " Basename_PC ", s_JamBase** " NewBase_PPS ");"
+.RE
+.fi
+.SH DESCRIPTION
+Opens a message base. Only one message base can be open at one
+call to this function.
+.SS Arguments
+.TP
+.I Basename_PC
+The path and base filename of the message base. "Base filename"
+means the filename without the JAM\-specific extension.
+.TP
+.I NewBase_PPS
+A pointer to a message base handle where the new message base
+handle will be written. On error you must
+.BR free (3)
+this memory if (*\fINewBase_PPS\fR) not NULL.
+.SH RETURN VALUE
+.TP
+.B 0
+if successful
+.TP
+.B JAM_IO_ERROR
+if an I/O error occured. see
+.BR JAM_Errno (3)
+.TP
+.B JAM_BAD_PARAM
+if
+.I NewBas_PPS
+is NULL
+.SH EXAMPLES
+.nf
+int Result_I;
+
+Result_I = JAM_OpenMB("/some/where/mybase", &Base_PS);
+if (Result_I)
+  printf("JAM_OpenMB returned %d.\\n", Result_I);
+.fi
+.SH AUTHOR
+This manual page was created by Sir Raorn <raorn@altlinux.ru>,
+based on original JAMlib documentation by Bjorn Stenberg
+<bjorn@haxx.nu> and Johan Billing <billing@df.lth.se>.
+.SH SEE ALSO
+.BR jamlib (3),
+.BR JAM_CreateMB (3),
+.BR JAM_CloseMB (3),
+.BR JAM_Errno (3)
+.\" vim: ft=nroff

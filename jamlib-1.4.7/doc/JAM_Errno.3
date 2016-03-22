@@ -1,0 +1,43 @@
+.\" $Id: JAM_Errno.3,v 1.1 2002/11/09 00:37:16 raorn Exp $
+.\"
+.TH JAM_Errno 3 2002-11-07 "" "JAM subroutine library"
+.SH NAME
+JAM_Errno \- Specify I/O error
+.SH SYNOPSIS
+.nf
+.B #include <jamlib/jam.h>
+
+.BI "int JAM_Errno(s_JamBase* " Base_PS ");"
+.RE
+.fi
+.SH DESCRIPTION
+When any of these library routines return \fBJAM_IO_ERROR\fP, you can
+call this function to find out exactly what went wrong.
+.SS Arguments
+.TP
+.I Base_PS
+The message base to use
+.SH "RETURN VALUE"
+Standard \'errno\' values, as the C compiler generated them, or if
+the I/O error was system specific, the return code is (10000 +
+system status code).
+.SH EXAMPLES
+.nf
+int   Result_I;
+uchar Text_AC[10];
+
+/* generate an I/O error */
+Result_I = JAM_ReadMsgText(0xffffffff, 10, Text_AC);
+if (Result_I) {
+    errno = JAM_Errno(Base_PS);
+    perror("JAM I/O error");
+}
+.fi
+.SH AUTHOR
+This manual page was created by Sir Raorn <raorn@altlinux.ru>,
+based on original JAMlib documentation by Bjorn Stenberg
+<bjorn@haxx.nu> and Johan Billing <billing@df.lth.se>.
+.SH SEE ALSO
+.BR jamlib (3),
+.BR errno (3)
+.\" vim: ft=nroff

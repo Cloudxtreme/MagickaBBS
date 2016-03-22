@@ -1,0 +1,49 @@
+.\" $Id: JAM_GetMBSize.3,v 1.1 2002/11/09 00:37:16 raorn Exp $
+.\"
+.TH JAM_GetMBSize 3 2002-11-07 "" "JAM subroutine library"
+.SH NAME
+JAM_GetMBSize \- Get the number of messages in message base
+.SH SYNOPSIS
+.nf
+.B #include <jamlib/jam.h>
+
+.BI "int JAM_GetMBSize(s_JamBase* " Base_PS ","
+.BI "                  ulong*     " Messages_PI ");"
+.RE
+.fi
+.SH DESCRIPTION
+Finds out the number of messages (deleted and undeleted) in the
+message base.
+.SS Arguments
+.TP
+.I Base_PS
+The message base to use
+.TP
+.I Messages_PI
+A pointer to a variable where the number of
+messages will be stored.
+.SH "RETURN VALUE"
+.TP
+.B 0
+if successful
+.TP
+.B JAM_IO_ERROR
+if an I/O error occured. See
+.BR JAM_Errno (3)
+.SH EXAMPLES
+.nf
+int   Result_I;
+ulong Size_I;
+
+Result_I = JAM_GetMBSize(Base_PS, &Size_I);
+if (Result_I)
+  printf("JAM_GetMBSize returned %d.\\n", Result_I);
+.fi
+.SH AUTHOR
+This manual page was created by Sir Raorn <raorn@altlinux.ru>,
+based on original JAMlib documentation by Bjorn Stenberg
+<bjorn@haxx.nu> and Johan Billing <billing@df.lth.se>.
+.SH SEE ALSO
+.BR jamlib (3),
+.BR JAM_Errno (3)
+.\" vim: ft=nroff

@@ -1,0 +1,80 @@
+.\" $Id: JAM_FindUser.3,v 1.1 2002/11/09 00:37:16 raorn Exp $
+.\"
+.TH JAM_FindUser 3 2002-11-07 "" "JAM subroutine library"
+.SH NAME
+JAM_FindUser \- Find message to a user
+.SH SYNOPSIS
+.nf
+.B #include <jamlib/jam.h>
+
+.BI "int JAM_FindUser(s_JamBase* " Base_PS ","
+.BI "                 ulong      " UserCrc_I ","
+.BI "                 ulong      " StartMsg_I ","
+.BI "                 ulong*     " MsgNo_PI ");"
+.RE
+.fi
+.SH DESCRIPTION
+Scans the message base looking for a message written to a specific
+user.
+.SS Arguments
+.TP
+.I Base_PS
+The message base to use
+.TP
+.I UserCrc_I
+The CRC32 value for the searched name
+.TP
+.I StartMsg_I
+The first message number to look at. This value is
+not the message\'s unique number, but rather the
+absolute position of the message in the message
+base. Message 0 therefore means the first message.
+.TP
+.I MsgNo_PI
+A pointer to a variable where the message number
+for the found message will be stored. This number
+is the absolute message position in the message
+base. Message 0 means the first message.
+.SH "RETURN VALUE"
+.TP
+.B 0
+if successful
+.TP
+.B JAM_IO_ERROR
+if an I/O error occured. See
+.BR JAM_Errno (3)
+.TP
+.B JAM_NO_USER
+if no message was found
+.SH EXAMPLES
+.nf
+uchar Name_AC[32];
+int   Result_I;
+ulong Crc_I;
+ulong Msg_I;
+
+strcpy(Name_AC, "Bjorn Stenberg");
+
+Crc_I = JAM_Crc32(Name_AC, strlen(Name_AC));
+
+Result_I = JAM_FindUser(Base_PS, Crc_I, 0, &Msg_I);
+
+switch (Result_I) {
+  case JAM_NO_USER:
+    printf("No message for me.\\n");
+    break;
+
+  case JAM_IO_ERROR:
+    printf("IO error %d\\n", JAM_Errno());
+    break;
+}
+.fi
+.SH AUTHOR
+This manual page was created by Sir Raorn <raorn@altlinux.ru>,
+based on original JAMlib documentation by Bjorn Stenberg
+<bjorn@haxx.nu> and Johan Billing <billing@df.lth.se>.
+.SH SEE ALSO
+.BR jamlib (3),
+.BR JAM_Crc32 (3),
+.BR JAM_Errno (3)
+.\" vim: ft=nroff
