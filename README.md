@@ -11,8 +11,8 @@ Currently it's in it's very early (re)development. You can sign up, login and lo
 
 I plan to work on things in this order:
 
-Mail System (using JAM LIB for compatability)
-External Door Support
-File Systems
-Everything else..
+* Mail System (using JAM LIB for compatability)
+* External Door Support
+* File Systems
+* Everything else..
 
