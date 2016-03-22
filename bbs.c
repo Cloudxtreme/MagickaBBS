@@ -53,6 +53,12 @@ static int mail_area_handler(void* user, const char* section, const char* name,
 			} else {
 				mc->networked = 0;
 			}
+		} else if (strcasecmp(name, "real names")) {
+			if (strcasecmp(value, "true") == 0) {
+				mc->realnames = 1;
+			} else {
+				mc->realnames = 0;
+			}
 		}
 	} else {
 		// check if it's partially filled in
@@ -109,6 +115,8 @@ static int handler(void* user, const char* section, const char* name,
 			conf->ansi_path = strdup(value);
 		} else if (strcasecmp(name, "bbs path") == 0) {
 			conf->bbs_path = strdup(value);
+		} else if (strcasecmp(name, "email path") == 0) {
+			conf->email_path = strdup(value);
 		}
 	} else if (strcasecmp(section, "mail conferences") == 0) {
 		if (conf->mail_conference_count == 0) {

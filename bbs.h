@@ -18,6 +18,7 @@ struct mail_conference {
 	char *name;
 	char *path;
 	int networked;
+	int realnames;
 	int sec_level;
 	int mail_area_count;
 	struct mail_area **mail_areas;
@@ -29,6 +30,8 @@ struct bbs_config {
 	
 	char *ansi_path;
 	char *bbs_path;
+	char *email_path;
+	
 	int nodes;
 	int newuserlvl;
 	int mail_conference_count;
