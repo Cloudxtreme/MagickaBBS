@@ -38,6 +38,51 @@ void timer_handler(int signum) {
 	}
 }
 
+static int mail_area_handler(void* user, const char* section, const char* name,
+                   const char* value)
+{
+	struct mail_conference *mc = (struct mail_conference *)user;
+	int i;
+	
+	if (strcasecmp(section, "main") == 0) {
+		if (strcasecmp(name, "visible sec level")) {
+			mc->sec_level = atoi(value);
+		}
+	} else {
+		// check if it's partially filled in
+		for (i=0;i<mc->mail_area_count;i++) {
+			if (strcasecmp(mc->mail_areas[i]->name, section) == 0) {
+				if (strcasecmp(name, "read sec level") == 0) {
+					mc->mail_areas[i]->read_sec_level = atoi(value);
+				} else if (strcasecmp(name, "write sec level") == 0) {
+					mc->mail_areas[i]->write_sec_level = atoi(value);
+				} else if (strcasecmp(name, "path") == 0) {
+					mc->mail_areas[i]->path = strdup(value);
+				}
+				return 1;
+			}
+		}
+		if (mc->mail_area_count == 0) {
+			mc->mail_areas = (struct mail_area **)malloc(sizeof(struct mail_area *));
+		} else {
+			mc->mail_areas = (struct mail_area **)realloc(mc->mail_areas, sizeof(struct mail_area *) * (mc->mail_area_count + 1));
+		}
+		
+		mc->mail_areas[mc->mail_area_count] = (struct mail_area *)malloc(sizeof(struct mail_area));
+		
+		mc->mail_areas[mc->mail_area_count]->name = strdup(section);
+		if (strcasecmp(name, "read sec level") == 0) {
+			mc->mail_areas[mc->mail_area_count]->read_sec_level = atoi(value);
+		} else if (strcasecmp(name, "write sec level") == 0) {
+			mc->mail_areas[mc->mail_area_count]->write_sec_level = atoi(value);
+		} else if (strcasecmp(name, "path") == 0) {
+			mc->mail_areas[mc->mail_area_count]->path = strdup(value);
+		}
+		mc->mail_area_count++;
+	}
+	return 1;
+}
+
 static int handler(void* user, const char* section, const char* name,
                    const char* value)
 {
@@ -59,6 +104,18 @@ static int handler(void* user, const char* section, const char* name,
 		} else if (strcasecmp(name, "bbs path") == 0) {
 			conf->bbs_path = strdup(value);
 		}
+	} else if (strcasecmp(section, "mail conferences") == 0) {
+		if (conf->mail_conference_count == 0) {
+			conf->mail_conferences = (struct mail_conference **)malloc(sizeof(struct mail_conference *));
+		} else {
+			conf->mail_conferences = (struct mail_conference **)realloc(conf->mail_conferences, sizeof(struct mail_conference *) * (conf->mail_conference_count + 1));
+		}
+		
+		conf->mail_conferences[conf->mail_conference_count] = (struct mail_conference *)malloc(sizeof(struct mail_conference));
+		conf->mail_conferences[conf->mail_conference_count]->name = strdup(name);
+		conf->mail_conferences[conf->mail_conference_count]->path = strdup(value);
+		conf->mail_conferences[conf->mail_conference_count]->mail_area_count = 0;
+		conf->mail_conference_count++;
 	}
 	
 	return 1;
@@ -210,13 +267,19 @@ void runbbs(int socket, char *config_path) {
 	sprintf(buffer, "Magicka BBS v%d.%d (%s) Loading...\r\n", VERSION_MAJOR, VERSION_MINOR, VERSION_STR);
 	s_putstring(socket, buffer);
 
-
+	conf.mail_conference_count = 0;
 	// Load BBS data
 	if (ini_parse(config_path, handler, &conf) <0) {
 		printf("Unable to load configuration ini (%s)!\n", config_path);
 		exit(-1);
 	}	
-	
+	// Load mail Areas
+	for (i=0;i<conf.mail_conference_count;i++) {
+		if (ini_parse(conf.mail_conferences[i]->path, mail_area_handler, conf.mail_conferences[i]) <0) {
+			printf("Unable to load configuration ini (%s)!\n", conf.mail_conferences[i]->path);
+			exit(-1);
+		}			
+	}
 
 	
 	// find out which node we are

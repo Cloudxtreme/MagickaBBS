@@ -28,7 +28,7 @@ int save_user(struct user_record *user) {
 	int rc;
  						
 	char *update_sql = "UPDATE users SET password=?, firstname=?,"
-					   "lastname=?, email=?, location=?, sec_level=?, last_on=?, time_left=? where loginname LIKE ?";
+					   "lastname=?, email=?, location=?, sec_level=?, last_on=?, time_left=?, cur_mail_conf=?, cur_mail_area=?, cur_file_dir=?, cur_file_sub=? where loginname LIKE ?";
     char *err_msg = 0;
      
  	sprintf(buffer, "%s/users.sq3", conf.bbs_path);
@@ -53,7 +53,11 @@ int save_user(struct user_record *user) {
         sqlite3_bind_int(res, 6, user->sec_level);
         sqlite3_bind_int(res, 7, user->laston);
         sqlite3_bind_int(res, 8, user->timeleft);
-        sqlite3_bind_text(res, 9, user->loginname, -1, 0);
+        sqlite3_bind_int(res, 9, user->cur_mail_conf);
+        sqlite3_bind_int(res, 10, user->cur_mail_area);
+        sqlite3_bind_int(res, 11, user->cur_file_dir);
+        sqlite3_bind_int(res, 12, user->cur_file_sub);
+        sqlite3_bind_text(res, 13, user->loginname, -1, 0);
     } else {
         fprintf(stderr, "Failed to execute statement: %s\n", sqlite3_errmsg(db));
     }
@@ -87,10 +91,14 @@ int inst_user(struct user_record *user) {
 						"location TEXT,"
 						"sec_level INTEGER,"
 						"last_on INTEGER,"
-						"time_left INTEGER);";
+						"time_left INTEGER,"
+						"cur_mail_conf INTEGER,"
+						"cur_mail_area INTEGER,"
+						"cur_file_sub INTEGER,"
+						"cur_file_dir INTEGER);";
 						
 	char *insert_sql = "INSERT INTO users (loginname, password, firstname,"
-					   "lastname, email, location, sec_level, last_on, time_left) VALUES(?,?, ?, ?, ?, ?, ?, ?, ?)";
+					   "lastname, email, location, sec_level, last_on, time_left, cur_mail_conf, cur_mail_area, cur_file_dir, cur_file_sub) VALUES(?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     char *err_msg = 0;
      
  	sprintf(buffer, "%s/users.sq3", conf.bbs_path);
@@ -127,6 +135,11 @@ int inst_user(struct user_record *user) {
         sqlite3_bind_int(res, 7, user->sec_level);
         sqlite3_bind_int(res, 8, user->laston);
         sqlite3_bind_int(res, 9, user->timeleft);
+        sqlite3_bind_int(res, 10, user->cur_mail_conf);
+        sqlite3_bind_int(res, 11, user->cur_mail_area);
+        sqlite3_bind_int(res, 12, user->cur_file_dir);
+        sqlite3_bind_int(res, 13, user->cur_file_sub);
+        
     } else {
         fprintf(stderr, "Failed to execute statement: %s\n", sqlite3_errmsg(db));
     }
@@ -186,6 +199,10 @@ struct user_record *check_user_pass(int socket, char *loginname, char *password)
 		user->sec_level = sqlite3_column_int(res, 7);
 		user->laston = (time_t)sqlite3_column_int(res, 8);
 		user->timeleft = sqlite3_column_int(res, 9);
+		user->cur_mail_conf = sqlite3_column_int(res, 10);
+		user->cur_mail_area = sqlite3_column_int(res, 11);
+		user->cur_file_dir = sqlite3_column_int(res, 12);
+		user->cur_file_sub = sqlite3_column_int(res, 13);
 		
 		if (strcmp(password, user->password) != 0) {
 			free(user);

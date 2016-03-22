@@ -1,7 +1,7 @@
 CC=cc
 CFLAGS=-I/usr/local/include
 DEPS = bbs.h
-OBJ = inih/ini.o bbs.o main.o users.o main_menu.o
+OBJ = inih/ini.o bbs.o main.o users.o main_menu.o mail_menu.o
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 

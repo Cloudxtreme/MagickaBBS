@@ -7,6 +7,21 @@
 #define VERSION_MINOR 1
 #define VERSION_STR "dev"
 
+struct mail_area {
+	char *name;
+	char *path;
+	int read_sec_level;
+	int write_sec_level;
+};
+
+struct mail_conference {
+	char *name;
+	char *path;
+	int sec_level;
+	int mail_area_count;
+	struct mail_area **mail_areas;
+};
+
 struct bbs_config {
 	char *bbs_name;
 	char *sysop_name;
@@ -15,7 +30,8 @@ struct bbs_config {
 	char *bbs_path;
 	int nodes;
 	int newuserlvl;
-	
+	int mail_conference_count;
+	struct mail_conference **mail_conferences;
 };
 
 struct sec_level_t {
@@ -34,6 +50,10 @@ struct user_record {
 	struct sec_level_t *sec_info;
 	time_t laston;
 	int timeleft;
+	int cur_mail_conf;
+	int cur_mail_area;
+	int cur_file_dir;
+	int cur_file_sub;
 };
 
 
@@ -54,4 +74,6 @@ extern struct user_record *check_user_pass(int socket, char *loginname, char *pa
 
 
 extern void main_menu(int socket, struct user_record *user);
+
+extern int mail_menu(int socket, struct user_record *user);
 #endif
