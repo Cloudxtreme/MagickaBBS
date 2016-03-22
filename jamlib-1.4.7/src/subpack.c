@@ -156,9 +156,9 @@ int JAM_PutSubfield( s_JamSubPacket* SubPack_PS, s_JamSubfield* Field_PS )
 
 	SubPack_PS->NumAlloc *= 2;
 	Fields_PPS = (s_JamSubfield**) realloc( SubPack_PS->Fields, SubPack_PS->NumAlloc * sizeof( s_JamSubfield* ) );
-	if ( !Fields_PPS )
+	if ( !Fields_PPS ) {
 	    return JAM_NO_MEMORY;
-
+	}
 	SubPack_PS->Fields=Fields_PPS;
     }
 
@@ -168,8 +168,9 @@ int JAM_PutSubfield( s_JamSubPacket* SubPack_PS, s_JamSubfield* Field_PS )
 
     /* allocate a new subfield */
     NewField_PS = (s_JamSubfield*) malloc( sizeof( s_JamSubfield ) );
-    if ( !NewField_PS )
-	return JAM_NO_MEMORY;
+    if ( !NewField_PS ) {
+		return JAM_NO_MEMORY;
+	}
 
     /* allocate a new buffer */
     if ( Field_PS->DatLen ) {

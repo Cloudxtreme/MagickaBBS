@@ -103,10 +103,13 @@ int JAM_ReadMsgHeader( s_JamBase*	Base_PS,
 	char*       Roof_PC;
 	int         BufSize_I = Header_PS->SubfieldLen;
 
-	Buf_PC = (void*) malloc( BufSize_I );
-	if ( !Buf_PC )
-	    return JAM_NO_MEMORY;
 
+
+	Buf_PC = (void*) malloc( BufSize_I );
+	if ( !Buf_PC ) {
+	    return JAM_NO_MEMORY;
+	}
+	
 	/* read all subfields */
 	if ( 1 > fread( Buf_PC, BufSize_I, 1, Base_PS->HdrFile_PS ) ) {
 	    Base_PS->Errno_I = errno;

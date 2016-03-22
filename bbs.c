@@ -47,6 +47,12 @@ static int mail_area_handler(void* user, const char* section, const char* name,
 	if (strcasecmp(section, "main") == 0) {
 		if (strcasecmp(name, "visible sec level")) {
 			mc->sec_level = atoi(value);
+		} else if (strcasecmp(name, "networked")) {
+			if (strcasecmp(value, "true") == 0) {
+				mc->networked = 1;
+			} else {
+				mc->networked = 0;
+			}
 		}
 	} else {
 		// check if it's partially filled in
