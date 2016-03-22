@@ -260,7 +260,7 @@ struct user_record *new_user(int socket) {
 	int passok = 0;
 	
 	user = (struct user_record *)malloc(sizeof(struct user_record));
-	
+	s_putstring(socket, "\r\n\r\n");
 	s_displayansi(socket, "newuser");
 	
 	do {
