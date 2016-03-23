@@ -153,6 +153,9 @@ int inst_user(struct user_record *user) {
 		sqlite3_close(db);    
 		exit(1);
     }
+    
+    user->id = sqlite3_last_insert_rowid(db);
+    
 	sqlite3_close(db);
 	return 1;
 }
@@ -385,6 +388,10 @@ struct user_record *new_user(int socket) {
 
 	user->laston = time(NULL);
 	user->timeleft = user->sec_info->timeperday;
+	user->cur_file_dir = 0;
+	user->cur_file_sub = 0;
+	user->cur_mail_area = 0;
+	user->cur_mail_conf = 0;
 	inst_user(user);
 	
 	return user;

@@ -3,3 +3,5 @@
 *.core
 magicka
 msgs/*
+node*
+doors/*

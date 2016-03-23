@@ -38,7 +38,55 @@ void timer_handler(int signum) {
 		}		
 	}
 }
+static int door_config_handler(void* user, const char* section, const char* name,
+                   const char* value)
+{
+	struct bbs_config *conf = (struct bbs_config *)user;
+	int i;
+	
+	for (i=0;i<conf->door_count;i++) {
+		if (strcasecmp(conf->doors[i]->name, section) == 0) {
+			// found it
+			if (strcasecmp(name, "key") == 0) {
+				conf->doors[i]->key = value[0];
+			} else if (strcasecmp(name, "command") == 0) {
+				conf->doors[i]->command = strdup(value);
+			} else if (strcasecmp(name, "stdio") == 0) {
+				if (strcasecmp(value, "true") == 0) {
+					conf->doors[i]->stdio = 1;
+				} else {
+					conf->doors[i]->stdio = 0;
+				}
+			}
+			return 1;
+		}
+	}
+	
+	if (conf->door_count == 0) {
+		conf->doors = (struct door_config **)malloc(sizeof(struct door_config *));
+	} else {
+		conf->doors = (struct door_config **)realloc(conf->doors, sizeof(struct door_config *) * (conf->door_count + 1));
+	}
+	
+	conf->doors[conf->door_count] = (struct door_config *)malloc(sizeof(struct door_config));
+	
+	conf->doors[conf->door_count]->name = strdup(section);
 
+	if (strcasecmp(name, "key") == 0) {
+		conf->doors[conf->door_count]->key = value[0];
+	} else if (strcasecmp(name, "command") == 0) {
+		conf->doors[conf->door_count]->command = strdup(value);
+	} else if (strcasecmp(name, "stdio") == 0) {
+		if (strcasecmp(value, "true") == 0) {
+			conf->doors[conf->door_count]->stdio = 1;
+		} else {
+			conf->doors[conf->door_count]->stdio = 0;
+		}
+	}
+	conf->door_count++;
+	
+	return 1;
+}
 static int mail_area_handler(void* user, const char* section, const char* name,
                    const char* value)
 {
@@ -324,6 +372,8 @@ void runbbs(int socket, char *config_path) {
 	s_putstring(socket, buffer);
 
 	conf.mail_conference_count = 0;
+	conf.door_count = 0;
+	
 	// Load BBS data
 	if (ini_parse(config_path, handler, &conf) <0) {
 		printf("Unable to load configuration ini (%s)!\n", config_path);
@@ -336,7 +386,11 @@ void runbbs(int socket, char *config_path) {
 			exit(-1);
 		}			
 	}
-
+	
+	if (ini_parse("doors.ini", door_config_handler, &conf) <0) {
+		printf("Unable to load configuration ini (doors.ini)!\n");
+		exit(-1);
+	}	
 	
 	// find out which node we are
 	mynode = 0;

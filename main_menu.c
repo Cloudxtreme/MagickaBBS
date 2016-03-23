@@ -20,6 +20,11 @@ void main_menu(int socket, struct user_record *user) {
 		c = s_getc(socket);
 		
 		switch(tolower(c)) {
+			case 'd':
+				{
+					doquit = door_menu(socket, user);
+				}
+				break;
 			case 'm':
 				{
 					doquit = mail_menu(socket, user);

@@ -7,6 +7,13 @@
 #define VERSION_MINOR 1
 #define VERSION_STR "dev"
 
+struct door_config {
+	char *name;
+	char key;
+	char *command;
+	int stdio;
+};
+
 struct mail_area {
 	char *name;
 	char *path;
@@ -36,6 +43,8 @@ struct bbs_config {
 	int newuserlvl;
 	int mail_conference_count;
 	struct mail_conference **mail_conferences;
+	int door_count;
+	struct door_config **doors;
 };
 
 struct sec_level_t {
@@ -82,4 +91,6 @@ extern void main_menu(int socket, struct user_record *user);
 
 extern int mail_getemailcount(struct user_record *user);
 extern int mail_menu(int socket, struct user_record *user);
+
+extern int door_menu(int socket, struct user_record *user);
 #endif
