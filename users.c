@@ -28,7 +28,7 @@ int save_user(struct user_record *user) {
 	int rc;
  						
 	char *update_sql = "UPDATE users SET password=?, firstname=?,"
-					   "lastname=?, email=?, location=?, sec_level=?, last_on=?, time_left=?, cur_mail_conf=?, cur_mail_area=?, cur_file_dir=?, cur_file_sub=? where loginname LIKE ?";
+					   "lastname=?, email=?, location=?, sec_level=?, last_on=?, time_left=?, cur_mail_conf=?, cur_mail_area=?, cur_file_dir=?, cur_file_sub=?, times_on=? where loginname LIKE ?";
     char *err_msg = 0;
      
  	sprintf(buffer, "%s/users.sq3", conf.bbs_path);
@@ -57,7 +57,8 @@ int save_user(struct user_record *user) {
         sqlite3_bind_int(res, 10, user->cur_mail_area);
         sqlite3_bind_int(res, 11, user->cur_file_dir);
         sqlite3_bind_int(res, 12, user->cur_file_sub);
-        sqlite3_bind_text(res, 13, user->loginname, -1, 0);
+        sqlite3_bind_int(res, 13, user->timeson);
+        sqlite3_bind_text(res, 14, user->loginname, -1, 0);
     } else {
         fprintf(stderr, "Failed to execute statement: %s\n", sqlite3_errmsg(db));
     }
@@ -95,10 +96,11 @@ int inst_user(struct user_record *user) {
 						"cur_mail_conf INTEGER,"
 						"cur_mail_area INTEGER,"
 						"cur_file_sub INTEGER,"
-						"cur_file_dir INTEGER);";
+						"cur_file_dir INTEGER,"
+						"times_on INTEGER);";
 						
 	char *insert_sql = "INSERT INTO users (loginname, password, firstname,"
-					   "lastname, email, location, sec_level, last_on, time_left, cur_mail_conf, cur_mail_area, cur_file_dir, cur_file_sub) VALUES(?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+					   "lastname, email, location, sec_level, last_on, time_left, cur_mail_conf, cur_mail_area, cur_file_dir, cur_file_sub, times_on) VALUES(?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     char *err_msg = 0;
      
  	sprintf(buffer, "%s/users.sq3", conf.bbs_path);
@@ -139,6 +141,7 @@ int inst_user(struct user_record *user) {
         sqlite3_bind_int(res, 11, user->cur_mail_area);
         sqlite3_bind_int(res, 12, user->cur_file_dir);
         sqlite3_bind_int(res, 13, user->cur_file_sub);
+        sqlite3_bind_int(res, 14, user->timeson);
         
     } else {
         fprintf(stderr, "Failed to execute statement: %s\n", sqlite3_errmsg(db));
@@ -206,6 +209,7 @@ struct user_record *check_user_pass(int socket, char *loginname, char *password)
 		user->cur_mail_area = sqlite3_column_int(res, 11);
 		user->cur_file_dir = sqlite3_column_int(res, 12);
 		user->cur_file_sub = sqlite3_column_int(res, 13);
+		user->timeson = sqlite3_column_int(res, 14);
 		
 		if (strcmp(password, user->password) != 0) {
 			free(user);
@@ -231,6 +235,55 @@ struct user_record *check_user_pass(int socket, char *loginname, char *password)
 	}	
 	
     return user;		   
+}
+
+void list_users(int socket, struct user_record *user) {
+	char buffer[256];
+	sqlite3 *db;
+    sqlite3_stmt *res;
+    int rc;
+    int i;
+   	
+	char *sql = "SELECT loginname,location,times_on FROM users";
+	
+	sprintf(buffer, "%s/users.sq3", conf.bbs_path);
+	
+	rc = sqlite3_open(buffer, &db);
+	
+	if (rc != SQLITE_OK) {
+        fprintf(stderr, "Cannot open database: %s\n", sqlite3_errmsg(db));
+        sqlite3_close(db);
+        exit(1);
+    }
+    rc = sqlite3_prepare_v2(db, sql, -1, &res, 0);
+	if (rc != SQLITE_OK) {
+        fprintf(stderr, "Cannot prepare statement: %s\n", sqlite3_errmsg(db));
+        sqlite3_close(db);
+        exit(1);
+    }
+    s_putstring(socket, "\r\n\e[1;30m-------------------------------------------------------------------------------\e[0m\r\n");
+    s_putstring(socket, "User Name        Location                         Times On\r\n");
+    s_putstring(socket, "\e[1;30m-------------------------------------------------------------------------------\e[0m\r\n");
+    i = 0;
+    while (sqlite3_step(res) == SQLITE_ROW) {
+		sprintf(buffer, "\e[1;37m%-16s \e[1;36m%-32s \e[1;32m%5d\r\n", sqlite3_column_text(res, 0), sqlite3_column_text(res, 1), sqlite3_column_int(res, 2));
+		s_putstring(socket, buffer);
+		
+		i++;
+		if (i == 20) {
+			sprintf(buffer, "Press any key to continue...\r\n");
+			s_putstring(socket, buffer);
+			s_getc(socket);	
+			i = 0;
+		}
+	}
+    s_putstring(socket, "\e[1;30m-------------------------------------------------------------------------------\e[0m\r\n");
+    sqlite3_finalize(res);
+    sqlite3_close(db);
+    
+    sprintf(buffer, "Press any key to continue...\r\n");
+	s_putstring(socket, buffer);
+	s_getc(socket);	
 }
 
 int check_user(char *loginname) {
@@ -392,6 +445,7 @@ struct user_record *new_user(int socket) {
 	user->cur_file_sub = 0;
 	user->cur_mail_area = 0;
 	user->cur_mail_conf = 0;
+	user->timeson = 0;
 	inst_user(user);
 	
 	return user;

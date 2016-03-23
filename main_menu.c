@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <sys/stat.h>
 #include "bbs.h"
 
 extern struct bbs_config conf; 
@@ -9,7 +10,9 @@ void main_menu(int socket, struct user_record *user) {
 	int doquit = 0;
 	char c;
 	char prompt[128];
-	
+	char buffer[256];
+	int i;
+	struct stat s;
 	while (!doquit) {
 		s_displayansi(socket, "mainmenu");
 		
@@ -20,6 +23,27 @@ void main_menu(int socket, struct user_record *user) {
 		c = s_getc(socket);
 		
 		switch(tolower(c)) {
+			case 'u':
+				{
+					list_users(socket, user);
+				}
+				break;
+			case 'b':
+				{
+					i = 0;
+					sprintf(buffer, "%s/bulletin%d.ans", conf.ansi_path, i);
+					
+					while (stat(buffer, &s) == 0) {
+						sprintf(buffer, "bulletin%d", i);
+						s_displayansi(socket, buffer);
+						sprintf(buffer, "Press any key to continue...\r\n");
+						s_putstring(socket, buffer);
+						s_getc(socket);
+						i++;
+						sprintf(buffer, "%s/bulletin%d.ans", conf.ansi_path, i);
+					}					
+				}
+				break;
 			case '1':
 				{
 					display_last10_callers(socket, user, 0);

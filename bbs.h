@@ -73,6 +73,7 @@ struct user_record {
 	int cur_mail_area;
 	int cur_file_dir;
 	int cur_file_sub;
+	int timeson;
 };
 
 
@@ -92,7 +93,7 @@ extern int save_user(struct user_record *user);
 extern int check_user(char *loginname);
 extern struct user_record *new_user(int socket);
 extern struct user_record *check_user_pass(int socket, char *loginname, char *password);
-
+extern void list_users(int socket, struct user_record *user);
 
 extern void main_menu(int socket, struct user_record *user);
 

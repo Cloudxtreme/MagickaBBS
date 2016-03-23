@@ -551,7 +551,7 @@ void runbbs(int socket, char *config_path) {
 		save_user(user);
 	}		
 	gUser = user;
-
+	user->timeson++;
 	// bulletins
 	i = 0;
 	sprintf(buffer, "%s/bulletin%d.ans", conf.ansi_path, i);
