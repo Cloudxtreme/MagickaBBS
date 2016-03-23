@@ -70,6 +70,7 @@ extern char s_getchar(int socket);
 extern void s_readstring(int socket, char *buffer, int max);
 extern char s_getc(int socket);
 extern void disconnect(int socket);
+extern void display_info(int socket);
 
 extern int save_user(struct user_record *user);
 extern int check_user(char *loginname);
@@ -79,5 +80,6 @@ extern struct user_record *check_user_pass(int socket, char *loginname, char *pa
 
 extern void main_menu(int socket, struct user_record *user);
 
+extern int mail_getemailcount(struct user_record *user);
 extern int mail_menu(int socket, struct user_record *user);
 #endif

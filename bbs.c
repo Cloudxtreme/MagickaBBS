@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include <sys/fcntl.h>
 #include <signal.h>
+#include <sys/utsname.h>
 #include "inih/ini.h"
 #include "bbs.h"
 
@@ -187,6 +188,14 @@ char s_getchar(int socket) {
 			disconnect(socket);
 		}		
 	}
+	
+	if (c == '\r' || c == '\n') {
+		len = read(socket, &c, 1);
+		if (len == 0) {
+			disconnect(socket);
+		}
+	}
+	
 	usertimeout = 10;
 	return (char)c;
 }
@@ -202,6 +211,8 @@ void s_readstring(int socket, char *buffer, int max) {
 	int i;
 	char c;
 	
+	memset(buffer, 0, max);
+	
 	for (i=0;i<max;i++) {
 		c = s_getchar(socket);
 		if ((c == '\b' || c == 127) && i > 0) {
@@ -212,7 +223,6 @@ void s_readstring(int socket, char *buffer, int max) {
 		}
 		
 		if (c == '\n' || c == '\r') {
-			c = s_getchar(socket);
 			return;
 		}
 		s_putchar(socket, c);
@@ -236,7 +246,6 @@ void s_readpass(int socket, char *buffer, int max) {
 		}
 
 		if (c == '\n' || c == '\r') {
-			c = s_getchar(socket);
 			return;
 		}
 		s_putchar(socket, '*');
@@ -254,6 +263,39 @@ void disconnect(int socket) {
 	remove(buffer);
 	close(socket);
 	exit(0);
+}
+
+void display_info(int socket) {
+	char buffer[256];
+	struct utsname name;
+	int mailwaiting;
+	
+	mailwaiting = mail_getemailcount(gUser);
+	
+	uname(&name);
+	
+	sprintf(buffer, "\r\n\r\n\e[1;37mSystem Information\r\n");
+	s_putstring(socket, buffer);
+	sprintf(buffer, "\e[1;30m----------------------------------------------\r\n");
+	s_putstring(socket, buffer);
+	sprintf(buffer, "\e[1;32mBBS Name    : \e[1;37m%s\r\n", conf.bbs_name);
+	s_putstring(socket, buffer);
+	sprintf(buffer, "\e[1;32mSysOp Name  : \e[1;37m%s\r\n", conf.sysop_name);
+	s_putstring(socket, buffer);
+	sprintf(buffer, "\e[1;32mNode        : \e[1;37m%d\r\n", mynode);
+	s_putstring(socket, buffer);
+	sprintf(buffer, "\e[1;32mBBS Version : \e[1;37mMagicka %d.%d (%s)\r\n", VERSION_MAJOR, VERSION_MINOR, VERSION_STR);
+	s_putstring(socket, buffer);
+	sprintf(buffer, "\e[1;32mSystem      : \e[1;37m%s (%s)\r\n", name.sysname, name.machine);
+	s_putstring(socket, buffer);
+	sprintf(buffer, "\e[1;32mMail Waiting: \e[1;37m%d\r\n", mailwaiting);
+	s_putstring(socket, buffer);
+	sprintf(buffer, "\e[1;30m----------------------------------------------\e[0m\r\n");
+	s_putstring(socket, buffer);
+	
+	sprintf(buffer, "Press any key to continue...\r\n");
+	s_putstring(socket, buffer);
+	s_getc(socket);
 }
 
 void runbbs(int socket, char *config_path) {
@@ -403,6 +445,12 @@ void runbbs(int socket, char *config_path) {
 	}		
 	gUser = user;
 
+	// bulletins
+	
+	// external login cmd
+	
+	// display info
+	display_info(socket);
 	
 	// main menu
 	main_menu(socket, user);

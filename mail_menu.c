@@ -42,6 +42,7 @@ char *editor(int socket, char *quote, char *from) {
 	char **quotecontent;
 	int lineat=0;
 	int qfrom,qto;
+	int z;
 	
 	if (quote != NULL) {
 		for (i=0;i<strlen(quote);i++) {
@@ -57,17 +58,18 @@ char *editor(int socket, char *quote, char *from) {
 				sprintf(quotecontent[quotelines], "%c> %s", from[0], linebuffer);
 				quotelines++;
 				lineat = 0;
+				linebuffer[0] = '\0';
 			} else {
 				linebuffer[lineat++] = quote[i];
 				linebuffer[lineat] = '\0';
 			}
 		}
 	}
-	s_putstring(socket, "\r\nMagicka Internal Editor, Type /S to Save, /A to abort and /? for help\r\n");
-	s_putstring(socket, "-------------------------------------------------------------------------------");
+	s_putstring(socket, "\r\n\e[1;32mMagicka Internal Editor, Type \e[1;37m/S \e[1;32mto save, \e[1;37m/A \e[1;32mto abort and \e[1;37m/? \e[1;32mfor help\r\n");
+	s_putstring(socket, "\e[1;30m-------------------------------------------------------------------------------\e[0m");
 	
 	while(!doquit) {
-		sprintf(prompt, "\r\n[%3d]: ", lines);
+		sprintf(prompt, "\r\n\e[1;30m[\e[1;34m%3d\e[1;30m]: \e[0m", lines);
 		s_putstring(socket, prompt);
 		s_readstring(socket, linebuffer, 70);
 		if (linebuffer[0] == '/') {
@@ -113,7 +115,7 @@ char *editor(int socket, char *quote, char *from) {
 				} else {
 					s_putstring(socket, "\r\n");
 					for (i=0;i<quotelines;i++) {
-						sprintf(buffer, "[%3d] %s\r\n", i, quotecontent[i]);
+						sprintf(buffer, "\r\n\e[1;30m[\e[1;34m%3d\e[1;30m]: \e[0m%s", i, quotecontent[i]);
 						s_putstring(socket, buffer);
 					}
 					
@@ -146,26 +148,92 @@ char *editor(int socket, char *quote, char *from) {
 						lines++;
 					}
 					
-					s_putstring(socket, "\r\nMagicka Internal Editor, Type /S to Save, /A to abort and /? for help\r\n");
-					s_putstring(socket, "-------------------------------------------------------------------------------\r\n");
+					s_putstring(socket, "\r\n\e[1;32mMagicka Internal Editor, Type \e[1;37m/S \e[1;32mto save, \e[1;37m/A \e[1;32mto abort and \e[1;37m/? \e[1;32mfor help\r\n");
+					s_putstring(socket, "\e[1;30m-------------------------------------------------------------------------------\e[0m");
+
 					for (i=0;i<lines;i++) {
-						sprintf(buffer, "[%3d]: %s\r\n", i, content[i]);
+						sprintf(buffer, "\r\n\e[1;30m[\e[1;34m%3d\e[1;30m]: \e[0m%s", i, content[i]);
 						s_putstring(socket, buffer);
 					}
 				}
 			} else if (toupper(linebuffer[1]) == 'L') {
-				s_putstring(socket, "\r\nMagicka Internal Editor, Type /S to Save, /A to abort and /? for help\r\n");
-				s_putstring(socket, "-------------------------------------------------------------------------------\r\n");
+				s_putstring(socket, "\r\n\e[1;32mMagicka Internal Editor, Type \e[1;37m/S \e[1;32mto save, \e[1;37m/A \e[1;32mto abort and \e[1;37m/? \e[1;32mfor help\r\n");
+				s_putstring(socket, "\e[1;30m-------------------------------------------------------------------------------\e[0m");
+
 				for (i=0;i<lines;i++) {
-					sprintf(buffer, "[%3d]: %s\r\n", i, content[i]);
+					sprintf(buffer, "\r\n\e[1;30m[\e[1;34m%3d\e[1;30m]: \e[0m%s", i, content[i]);
 					s_putstring(socket, buffer);
 				}				
 			} else if (linebuffer[1] == '?') {
-				s_putstring(socket, "\r\nHELP\r\n");
+				s_putstring(socket, "\e[1;33m\r\nHELP\r\n");
 				s_putstring(socket, "/S - Save Message\r\n");
 				s_putstring(socket, "/A - Abort Message\r\n");
 				s_putstring(socket, "/Q - Quote Message\r\n");
-				s_putstring(socket, "/L - Relist Message\r\n");
+				s_putstring(socket, "/E - Edit (Rewrite) Line\r\n");
+				s_putstring(socket, "/D - Delete Line\r\n");
+				s_putstring(socket, "/I - Insert Line\r\n");
+				s_putstring(socket, "/L - Relist Message\r\n\e[0m");
+			} else if (toupper(linebuffer[1]) == 'D') {
+				s_putstring(socket, "\r\nWhich line do you want to delete? ");
+				s_readstring(socket, buffer, 6);
+				if (strlen(buffer) == 0) {
+					s_putstring(socket, "\r\nAborted...\r\n");
+				} else {
+					z = atoi(buffer);
+					if (z < 0 || z >= lines) {
+						s_putstring(socket, "\r\nAborted...\r\n");
+					} else {
+						for (i=z;i<lines-1;i++) {
+							free(content[i]);
+							content[i] = strdup(content[i+1]);
+						}
+						free(content[i]);
+						lines--;
+						content = (char **)realloc(content, sizeof(char *) * lines);
+					}
+				}
+			} else if (toupper(linebuffer[1]) == 'E') {
+				s_putstring(socket, "\r\nWhich line do you want to edit? ");
+				s_readstring(socket, buffer, 6);
+				if (strlen(buffer) == 0) {
+					s_putstring(socket, "\r\nAborted...\r\n");
+				} else {
+					z = atoi(buffer);
+					if (z < 0 || z >= lines) {
+						s_putstring(socket, "\r\nAborted...\r\n");
+					} else {
+						sprintf(buffer, "\r\n\e[1;30m[\e[1;34m%3d\e[1;30m]: \e[0m%s", z, content[z]);
+						s_putstring(socket, buffer);						
+						sprintf(buffer, "\r\n\e[1;30m[\e[1;34m%3d\e[1;30m]: \e[0m", z);
+						s_putstring(socket, buffer);
+						s_readstring(socket, linebuffer, 70);
+						free(content[z]);
+						content[z] = strdup(linebuffer);	
+					}
+				}
+			} else if (toupper(linebuffer[1]) == 'I') {
+				s_putstring(socket, "\r\nInsert before which line? ");
+				s_readstring(socket, buffer, 6);
+				if (strlen(buffer) == 0) {
+					s_putstring(socket, "\r\nAborted...\r\n");
+				} else {
+					z = atoi(buffer);
+					if (z < 0 || z >= lines) {
+						s_putstring(socket, "\r\nAborted...\r\n");
+					} else {
+						sprintf(buffer, "\r\n\e[1;30m[\e[1;34m%3d\e[1;30m]: \e[0m", z);
+						s_putstring(socket, buffer);
+						s_readstring(socket, linebuffer, 70);
+						lines++;
+						content = (char **)realloc(content, sizeof(char *) * lines);
+						
+						for (i=lines;i>z;i--) {
+							content[i] = content[i-1];
+						}
+						
+						content[z] = strdup(linebuffer);
+					}
+				}
 			}
 		} else {
 			if (lines == 0) {
@@ -196,6 +264,7 @@ void read_message(int socket, struct user_record *user, int mailno) {
 	s_JamSubfield jsf;
 	char buffer[256];
 	int z;
+	struct tm msg_date;
 	
 	char *subject = NULL;
 	char *from = NULL;
@@ -233,13 +302,21 @@ void read_message(int socket, struct user_record *user, int mailno) {
 			memcpy(to, jsp->Fields[z]->Buffer, jsp->Fields[z]->DatLen);
 		}						
 	}
-	sprintf(buffer, "\e[2JFrom    : %s\r\n", from);
+	
+	
+	
+	sprintf(buffer, "\e[2J\e[1;32mFrom    : \e[1;37m%s\r\n", from);
 	s_putstring(socket, buffer);
-	sprintf(buffer, "To      : %s\r\n", to);
+	sprintf(buffer, "\e[1;32mTo      : \e[1;37m%s\r\n", to);
 	s_putstring(socket, buffer);
-	sprintf(buffer, "Subject : %s\r\n", subject);
+	sprintf(buffer, "\e[1;32mSubject : \e[1;37m%s\r\n", subject);
 	s_putstring(socket, buffer);
-	s_putstring(socket, "-------------------------------------------------------------------------------\r\n");
+	localtime_r((time_t *)&jmh.DateWritten, &msg_date);
+	sprintf(buffer, "\e[1;32mDate    : \e[1;37m%s", asctime(&msg_date));
+	buffer[strlen(buffer) - 1] = '\0';
+	strcat(buffer, "\r\n");
+	s_putstring(socket, buffer);
+	s_putstring(socket, "\e[1;30m-------------------------------------------------------------------------------\e[0m\r\n");
 
 	body = (char *)malloc(jmh.TxtLen);
 	
@@ -523,102 +600,105 @@ int mail_menu(int socket, struct user_record *user) {
 						break;
 					} else {
 						JAM_ReadMBHeader(jb, &jbh);
-						
-						sprintf(buffer, "Start at message [0-%d] ? ", jbh.ActiveMsgs - 1);
-						s_putstring(socket, buffer);
-						
-						s_readstring(socket, buffer, 6);
-						i = atoi(buffer);
-						closed = 0;
-						s_putstring(socket, "\r\n");
-						for (j=i;j<jbh.ActiveMsgs;j++) {
-							z = JAM_ReadMsgHeader(jb, j, &jmh, &jsp);
-							if (z != 0) {
-								continue;
-							}
-							
-							if (jmh.Attribute & MSG_DELETED) {
-								JAM_DelSubPacket(jsp);
-								continue;
-							}
-
-							if (jmh.Attribute & MSG_NODISP) {
-								JAM_DelSubPacket(jsp);
-								continue;
-							}
-							subject = NULL;
-							from = NULL;
-							to = NULL;
-							
-							for (z=0;z<jsp->NumFields;z++) {
-								if (jsp->Fields[z]->LoID == JAMSFLD_SUBJECT) {
-									subject = (char *)malloc(jsp->Fields[z]->DatLen + 1);
-									memset(subject, 0, jsp->Fields[z]->DatLen + 1);
-									memcpy(subject, jsp->Fields[z]->Buffer, jsp->Fields[z]->DatLen);
-								}
-								if (jsp->Fields[z]->LoID == JAMSFLD_SENDERNAME) {
-									from = (char *)malloc(jsp->Fields[z]->DatLen + 1);
-									memset(from, 0, jsp->Fields[z]->DatLen + 1);
-									memcpy(from, jsp->Fields[z]->Buffer, jsp->Fields[z]->DatLen);
-								}				
-								if (jsp->Fields[z]->LoID == JAMSFLD_RECVRNAME) {
-									to = (char *)malloc(jsp->Fields[z]->DatLen + 1);
-									memset(to, 0, jsp->Fields[z]->DatLen + 1);
-									memcpy(to, jsp->Fields[z]->Buffer, jsp->Fields[z]->DatLen);
-								}				
-												
-							}
-							
-							localtime_r((time_t *)&jmh.DateWritten, &msg_date);
-							
-							sprintf(buffer, "[%4d] %-25s %-15s %-15s %02d:%02d %02d-%02d-%02d\r\n", j, subject, from, to, msg_date.tm_hour, msg_date.tm_min, msg_date.tm_mday, msg_date.tm_mon + 1, msg_date.tm_year - 100);
+						if (jbh.ActiveMsgs > 0) {
+							sprintf(buffer, "Start at message [0-%d] ? ", jbh.ActiveMsgs - 1);
 							s_putstring(socket, buffer);
-							JAM_DelSubPacket(jsp);
-							if (subject != NULL) {
-								free(subject);
-							}
-							if (from != NULL) {
-								free(from);
-							}
-							if (to != NULL) {
-								free(to);
-							}
 							
-							if ((j - i) != 0 && (j - i) % 22 == 0) {
-								sprintf(buffer, "(#) Read Message # (Q) Quit (ENTER) Continue\r\n");
-								s_putstring(socket, buffer);
-								s_readstring(socket, buffer, 6);
+							s_readstring(socket, buffer, 6);
+							i = atoi(buffer);
+							closed = 0;
+							s_putstring(socket, "\e[2J\e[1;37;44m[MSG#] Subject                   From            To              Date          \r\n\e[0m");
+							for (j=i;j<jbh.ActiveMsgs;j++) {
+								z = JAM_ReadMsgHeader(jb, j, &jmh, &jsp);
+								if (z != 0) {
+									continue;
+								}
 								
-								if (tolower(buffer[0]) == 'q') {
-									break;
-								} else if (strlen(buffer) > 0) {
-									z = atoi(buffer);
-									if (z >= 0 && z <= jbh.ActiveMsgs) {
-										JAM_CloseMB(jb);
-										closed = 1;
-										read_message(socket, user, z);
+								if (jmh.Attribute & MSG_DELETED) {
+									JAM_DelSubPacket(jsp);
+									continue;
+								}
+
+								if (jmh.Attribute & MSG_NODISP) {
+									JAM_DelSubPacket(jsp);
+									continue;
+								}
+								subject = NULL;
+								from = NULL;
+								to = NULL;
+								
+								for (z=0;z<jsp->NumFields;z++) {
+									if (jsp->Fields[z]->LoID == JAMSFLD_SUBJECT) {
+										subject = (char *)malloc(jsp->Fields[z]->DatLen + 1);
+										memset(subject, 0, jsp->Fields[z]->DatLen + 1);
+										memcpy(subject, jsp->Fields[z]->Buffer, jsp->Fields[z]->DatLen);
+									}
+									if (jsp->Fields[z]->LoID == JAMSFLD_SENDERNAME) {
+										from = (char *)malloc(jsp->Fields[z]->DatLen + 1);
+										memset(from, 0, jsp->Fields[z]->DatLen + 1);
+										memcpy(from, jsp->Fields[z]->Buffer, jsp->Fields[z]->DatLen);
+									}				
+									if (jsp->Fields[z]->LoID == JAMSFLD_RECVRNAME) {
+										to = (char *)malloc(jsp->Fields[z]->DatLen + 1);
+										memset(to, 0, jsp->Fields[z]->DatLen + 1);
+										memcpy(to, jsp->Fields[z]->Buffer, jsp->Fields[z]->DatLen);
+									}				
+													
+								}
+								
+								localtime_r((time_t *)&jmh.DateWritten, &msg_date);
+								
+								sprintf(buffer, "\e[1;30m[\e[1;34m%4d\e[1;30m] \e[1;37m%-25s \e[1;32m%-15s \e[1;33m%-15s \e[1;35m%02d:%02d %02d-%02d-%02d\e[0m\r\n", j, subject, from, to, msg_date.tm_hour, msg_date.tm_min, msg_date.tm_mday, msg_date.tm_mon + 1, msg_date.tm_year - 100);
+								s_putstring(socket, buffer);
+								JAM_DelSubPacket(jsp);
+								if (subject != NULL) {
+									free(subject);
+								}
+								if (from != NULL) {
+									free(from);
+								}
+								if (to != NULL) {
+									free(to);
+								}
+								
+								if ((j - i) != 0 && (j - i) % 22 == 0) {
+									sprintf(buffer, "(#) Read Message # (Q) Quit (ENTER) Continue\r\n");
+									s_putstring(socket, buffer);
+									s_readstring(socket, buffer, 6);
+									
+									if (tolower(buffer[0]) == 'q') {
 										break;
+									} else if (strlen(buffer) > 0) {
+										z = atoi(buffer);
+										if (z >= 0 && z <= jbh.ActiveMsgs) {
+											JAM_CloseMB(jb);
+											closed = 1;
+											read_message(socket, user, z);
+											break;
+										}
 									}
 								}
-							}
-							
-						}
-						sprintf(buffer, "(#) Read Message # (Q) Quit (ENTER) Continue\r\n");
-						s_putstring(socket, buffer);
-						s_readstring(socket, buffer, 6);
 								
-						if (tolower(buffer[0]) == 'q') {
-							break;
-						} else if (strlen(buffer) > 0) {
-							z = atoi(buffer);
-							if (z >= 0 && z <= jbh.ActiveMsgs) {
-								JAM_CloseMB(jb);
-								closed = 1;
-								read_message(socket, user, z);
-								break;
 							}
-						}						
-					}
+							sprintf(buffer, "(#) Read Message # (Q) Quit (ENTER) Continue\r\n");
+							s_putstring(socket, buffer);
+							s_readstring(socket, buffer, 6);
+									
+							if (tolower(buffer[0]) == 'q') {
+								break;
+							} else if (strlen(buffer) > 0) {
+								z = atoi(buffer);
+								if (z >= 0 && z <= jbh.ActiveMsgs) {
+									JAM_CloseMB(jb);
+									closed = 1;
+									read_message(socket, user, z);
+									break;
+								}
+							}						
+						} else {
+							s_putstring(socket, "\r\nThere is no mail in this area\r\n");
+						}
+					} 
 					if (closed == 0) {
 						JAM_CloseMB(jb);
 					}
@@ -798,16 +878,19 @@ int mail_menu(int socket, struct user_record *user) {
 						lastmsg = 0;
 						while (JAM_FindUser(jb, jam_crc, lastmsg, &currmsg) == 0) {
 							if (JAM_ReadMsgHeader(jb, currmsg, &jmh, &jsp) != 0) {
+								lastmsg = currmsg + 1;
 								continue;
 							}
 							
 							if (jmh.Attribute & MSG_DELETED) {
 								JAM_DelSubPacket(jsp);
+								lastmsg = currmsg + 1;
 								continue;
 							}
 
 							if (jmh.Attribute & MSG_NODISP) {
 								JAM_DelSubPacket(jsp);
+								lastmsg = currmsg + 1;
 								continue;
 							}
 							subject = NULL;
@@ -833,7 +916,7 @@ int mail_menu(int socket, struct user_record *user) {
 								free(from);
 							}
 							s_putstring(socket, buffer);
-							
+							JAM_DelSubPacket(jsp);
 							lastmsg = currmsg + 1;
 						}
 						
@@ -884,14 +967,18 @@ int mail_menu(int socket, struct user_record *user) {
 							}
 							
 							if (strcasecmp(from, user->loginname) == 0) {
-								sprintf(buffer, "\e[2JFrom    : %s\r\n", from);
+								sprintf(buffer, "\e[2J\e[1;32mFrom    : \e[1;37m%s\r\n", from);
 								s_putstring(socket, buffer);
-								sprintf(buffer, "To      : %s\r\n", to);
+								sprintf(buffer, "\e[1;32mTo      : \e[1;37m%s\r\n", to);
 								s_putstring(socket, buffer);
-								sprintf(buffer, "Subject : %s\r\n", subject);
+								sprintf(buffer, "\e[1;32mSubject : \e[1;37m%s\r\n", subject);
 								s_putstring(socket, buffer);
-								s_putstring(socket, "-------------------------------------------------------------------------------\r\n");
-
+								localtime_r((time_t *)&jmh.DateWritten, &msg_date);
+								sprintf(buffer, "\e[1;32mDate    : \e[1;37m%s", asctime(&msg_date));
+								buffer[strlen(buffer) - 1] = '\0';
+								strcat(buffer, "\r\n");
+								s_putstring(socket, buffer);
+								s_putstring(socket, "\e[1;30m-------------------------------------------------------------------------------\e[0m\r\n");
 								body = (char *)malloc(jmh.TxtLen);
 	
 								JAM_ReadMsgText(jb, jmh.TxtOffset, jmh.TxtLen, (uchar *)body);
@@ -1059,4 +1146,44 @@ int mail_menu(int socket, struct user_record *user) {
 	}
 	
 	return doquit;
+}
+
+int mail_getemailcount(struct user_record *user) {
+	s_JamBase *jb;
+	s_JamBaseHeader jbh;
+	s_JamMsgHeader jmh;
+	s_JamSubPacket* jsp;
+	s_JamSubfield jsf;
+	ulong jam_crc;
+	ulong lastmsg, currmsg;
+	
+	int msg_count = 0;
+	
+	jb = open_jam_base(conf.email_path);
+	if (!jb) {
+		printf("Error opening JAM base.. %s\n", conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->path);
+	} else {
+		jam_crc = JAM_Crc32((uchar *)user->loginname, strlen(user->loginname));
+		lastmsg = 0;
+		while (JAM_FindUser(jb, jam_crc, lastmsg, &currmsg) == 0) {
+			if (JAM_ReadMsgHeader(jb, currmsg, &jmh, &jsp) != 0) {
+				continue;
+			}
+							
+			if (jmh.Attribute & MSG_DELETED) {
+				JAM_DelSubPacket(jsp);
+				continue;
+			}
+
+			if (jmh.Attribute & MSG_NODISP) {
+				JAM_DelSubPacket(jsp);
+				continue;
+			}
+			JAM_DelSubPacket(jsp);
+			msg_count++;
+			lastmsg = currmsg + 1;
+		}
+		JAM_CloseMB(jb);
+	}
+	return msg_count;
 }
