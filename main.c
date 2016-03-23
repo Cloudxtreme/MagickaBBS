@@ -11,9 +11,10 @@ int main(int argc, char **argv) {
 	int socket_desc, client_sock, c, *new_sock;
 	int pid;
 	struct sockaddr_in server, client;
+	int port;
 	
-	if (argc < 2) {
-		printf("Usage ./magicka bbs.ini\n");
+	if (argc < 3) {
+		printf("Usage ./magicka bbs.ini port\n");
 		exit(1);
 	}
 	
@@ -22,10 +23,11 @@ int main(int argc, char **argv) {
 		printf("Couldn't create socket..\n");
 		return 1;
 	}
+	port = atoi(argv[2]);
 	
 	server.sin_family = AF_INET;
 	server.sin_addr.s_addr = INADDR_ANY;
-	server.sin_port = htons(2300);
+	server.sin_port = htons(port);
 	
 	if (bind(socket_desc, (struct sockaddr *)&server, sizeof(server)) < 0) {
 		perror("Bind Failed, Error\n");

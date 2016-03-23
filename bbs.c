@@ -520,5 +520,8 @@ void runbbs(int socket, char *config_path) {
 	
 	// main menu
 	main_menu(socket, user);
+	
+	s_displayansi(socket, "goodbye");
+	
 	disconnect(socket);
 }

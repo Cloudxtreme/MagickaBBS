@@ -65,7 +65,7 @@ int door_menu(int socket, struct user_record *user) {
 	while (!dodoors) {
 		s_displayansi(socket, "doors");
 		
-		sprintf(prompt, "TL: %dm :> ", user->timeleft);
+		sprintf(prompt, "\r\nTL: %dm :> ", user->timeleft);
 		s_putstring(socket, prompt);
 		
 		c = s_getc(socket);
