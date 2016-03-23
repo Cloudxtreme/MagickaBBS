@@ -49,9 +49,9 @@ If you want to install Magicka BBS, follow these steps.
   
   `cp -r ansi-default ansi`
   
-8. Run Magicka BBS on a port over 1024 (Below require root, and wer're not ready for that).
+8. Run Magicka BBS on a port over 1024 (Below require root, and we're not ready for that).
 
   `./magicka config/bbs.ini 2300`
   
-9. Your BBS is now running on port 2300, log in and create yourself an account! (By default there is only one
-security level, you can add more, but you will need to use an SQLite Manager to modify users.sq3 and set security levels, as there is no user editor yet.
+9. Your BBS is now running on port 2300, log in and create yourself an account! (By default there is only one security level, you can add more, 
+but you will need to use an SQLite Manager to modify users.sq3 and set security levels, as there is no user editor yet.
