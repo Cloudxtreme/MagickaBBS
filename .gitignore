@@ -6,3 +6,5 @@ msgs/*
 node*
 doors/*
 last10.dat
+ansis/*
+config/*

@@ -14,7 +14,7 @@ int main(int argc, char **argv) {
 	int port;
 	
 	if (argc < 3) {
-		printf("Usage ./magicka bbs.ini port\n");
+		printf("Usage ./magicka config/bbs.ini port\n");
 		exit(1);
 	}
 	

@@ -8,6 +8,7 @@
 #include <sys/fcntl.h>
 #include <signal.h>
 #include <sys/utsname.h>
+#include <sys/time.h>
 #include "inih/ini.h"
 #include "bbs.h"
 
@@ -440,7 +441,7 @@ void runbbs(int socket, char *config_path) {
 		}			
 	}
 	
-	if (ini_parse("doors.ini", door_config_handler, &conf) <0) {
+	if (ini_parse("config/doors.ini", door_config_handler, &conf) <0) {
 		printf("Unable to load configuration ini (doors.ini)!\n");
 		exit(-1);
 	}	

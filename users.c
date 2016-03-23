@@ -432,7 +432,7 @@ struct user_record *new_user(int socket) {
 
 	user->sec_info = (struct sec_level_t *)malloc(sizeof(struct sec_level_t));
 	
-	sprintf(buffer, "%s/s%d.ini", conf.bbs_path, user->sec_level);
+	sprintf(buffer, "%s/config/s%d.ini", conf.bbs_path, user->sec_level);
 	
 	if (ini_parse(buffer, secLevel, user->sec_info) <0) {
 		printf("Unable to load sec Level ini (%s)!\n", buffer);
