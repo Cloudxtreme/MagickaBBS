@@ -24,7 +24,7 @@ If you want to install Magicka BBS, follow these steps.
 2. Clone the repo `git clone https://github.com/apamment/MagickaBBS`
 3. Build JamLib
 
-  `cd MagickaBBS`
+  `cd MagickaBBS/jamlib-1.4.7`
   
   `./configure`
   
@@ -36,7 +36,7 @@ If you want to install Magicka BBS, follow these steps.
   
 4. Build the BBS (You may have to adjust the Makefile for your system)
 
-  `gmake`
+  `gmake` (FreeBSD) `make` (Linux)
   
 5. Copy the config-default directory to a config directory.
 
