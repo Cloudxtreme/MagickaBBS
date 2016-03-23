@@ -320,7 +320,7 @@ void runbbs(int socket, char *config_path) {
 
 	
 
-	sprintf(buffer, "Magicka BBS v%d.%d (%s) Loading...\r\n", VERSION_MAJOR, VERSION_MINOR, VERSION_STR);
+	sprintf(buffer, "Magicka BBS v%d.%d (%s), Loading...\r\n", VERSION_MAJOR, VERSION_MINOR, VERSION_STR);
 	s_putstring(socket, buffer);
 
 	conf.mail_conference_count = 0;
@@ -446,6 +446,18 @@ void runbbs(int socket, char *config_path) {
 	gUser = user;
 
 	// bulletins
+	i = 0;
+	sprintf(buffer, "%s/bulletin%d.ans", conf.ansi_path, i);
+	
+	while (stat(buffer, &s) == 0) {
+		sprintf(buffer, "bulletin%d", i);
+		s_displayansi(socket, buffer);
+		sprintf(buffer, "Press any key to continue...\r\n");
+		s_putstring(socket, buffer);
+		s_getc(socket);
+		i++;
+		sprintf(buffer, "%s/bulletin%d.ans", conf.ansi_path, i);
+	}
 	
 	// external login cmd
 	
