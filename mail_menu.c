@@ -383,6 +383,7 @@ void read_message(int socket, struct user_record *user, int mailno) {
 							
 				JAM_ClearMsgHeader( &jmh );
 				jmh.DateWritten = time(NULL);
+				jmh.Attribute |= MSG_LOCAL;
 							
 				jsp = JAM_NewSubPacket();
 				jsf.LoID   = JAMSFLD_SENDERNAME;
@@ -530,7 +531,7 @@ int mail_menu(int socket, struct user_record *user) {
 						
 						JAM_ClearMsgHeader( &jmh );
 						jmh.DateWritten = time(NULL);
-						
+						jmh.Attribute |= MSG_LOCAL;
 						if (conf.mail_conferences[user->cur_mail_conf]->realnames == 0) {
 							strcpy(buffer, user->loginname);
 						} else {
