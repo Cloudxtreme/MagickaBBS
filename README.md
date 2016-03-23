@@ -21,7 +21,7 @@ I plan to work on things in this order:
 If you want to install Magicka BBS, follow these steps.
 
 1. Ensure you have git, c compiler, sqlite-dev and gnu make
-2. Clone the repo "git clone https://github.com/apamment/MagickaBBS
+2. Clone the repo `git clone https://github.com/apamment/MagickaBBS`
 3. Build JamLib
 
   `cd MagickaBBS`
