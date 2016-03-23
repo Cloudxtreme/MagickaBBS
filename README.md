@@ -25,9 +25,13 @@ If you want to install Magicka BBS, follow these steps.
 3. Build JamLib
 
   `cd MagickaBBS
+  
   ./configure
+  
   make
+  
   su
+  
   make install`
   
 4. Build the BBS (You may have to adjust the Makefile for your system)
@@ -41,9 +45,9 @@ If you want to install Magicka BBS, follow these steps.
 6. Edit the config files and update essential information, like system paths and BBS name etc
 7. Copy the ansi-default directory to the one specified in your system path
 
-  `eg.
+  eg.
   
-  cp -r ansi-default ansi`
+  `cp -r ansi-default ansi`
   
 8. Run Magicka BBS on a port over 1024 (Below require root, and wer're not ready for that).
 
