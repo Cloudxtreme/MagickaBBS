@@ -491,7 +491,7 @@ void runbbs(int socket, char *config_path) {
 	
 
 	
-	s_putstring(socket, "Enter your Login Name or NEW to create an account\r\n");
+	s_putstring(socket, "\e[0mEnter your Login Name or NEW to create an account\r\n");
 	s_putstring(socket, "Login:> ");
 	
 	s_readstring(socket, buffer, 25);
