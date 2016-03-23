@@ -612,15 +612,18 @@ int mail_menu(int socket, struct user_record *user) {
 							for (j=i;j<jbh.ActiveMsgs;j++) {
 								z = JAM_ReadMsgHeader(jb, j, &jmh, &jsp);
 								if (z != 0) {
+									printf("Failed to read msg header: %d Erro %d\n", z, JAM_Errno(jb));
 									continue;
 								}
 								
 								if (jmh.Attribute & MSG_DELETED) {
+									printf("Deleted MSG\n");
 									JAM_DelSubPacket(jsp);
 									continue;
 								}
 
 								if (jmh.Attribute & MSG_NODISP) {
+									printf("No Display\n");
 									JAM_DelSubPacket(jsp);
 									continue;
 								}

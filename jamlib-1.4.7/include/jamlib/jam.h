@@ -44,14 +44,19 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <ctype.h>
-
+#if defined(linux)
+#include <stdint.h>
+#endif
 #if !defined(linux)
-#if !(((defined(__FreeBSD__) && __FreeBSD_version >= 440000)) || defined(NeXTBSD))
+#if !(((defined(__FreeBSD__) && __FreeBSD_version >= 440000)) || defined(NeXTBSD)) 
 typedef unsigned short ushort;   /* must be 16 bits wide */
 #endif
 typedef uint32_t  ulong;    /* must be 32 bits wide */
 #endif
 typedef unsigned char  uchar;    /* must be  8 bits wide */
+#if defined(linux)
+#define ulong uint32_t
+#endif
 
 /*
 **  Error codes {{{
