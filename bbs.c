@@ -313,6 +313,59 @@ void disconnect(int socket) {
 	exit(0);
 }
 
+void display_last10_callers(int socket, struct user_record *user, int record) {
+	struct last10_callers callers[10];
+	struct last10_callers new_entry;
+	int i,z,j;
+	char buffer[256];
+	struct tm l10_time;
+	FILE *fptr = fopen("last10.dat", "rb");
+	
+	s_putstring(socket, "\r\n\e[1;37mLast 10 callers:\r\n");
+	s_putstring(socket, "\e[1;30m-------------------------------------------------------------------------------\r\n");
+	
+	if (fptr != NULL) {
+		
+		for (i=0;i<10;i++) {
+			if (fread(&callers[i], sizeof(struct last10_callers), 1, fptr) < 1) {
+				break;
+			}
+		}
+		
+		fclose(fptr);
+	} else {
+		i = 0;
+	}
+	
+	for (z=0;z<i;z++) {
+		localtime_r(&callers[z].time, &l10_time);
+		sprintf(buffer, "\e[1;37m%-16s \e[1;36m%-32s \e[1;32m%02d:%02d %02d-%02d-%02d\e[0m\r\n", callers[z].name, callers[z].location, l10_time.tm_hour, l10_time.tm_min, l10_time.tm_mday, l10_time.tm_mon + 1, l10_time.tm_year - 100);
+		s_putstring(socket, buffer);
+	}
+	s_putstring(socket, "\e[1;30m-------------------------------------------------------------------------------\e[0m\r\n");
+	if (strcasecmp(conf.sysop_name, user->loginname) != 0 && record) {
+		memset(&new_entry, 0, sizeof(struct last10_callers));
+		strcpy(new_entry.name, user->loginname);
+		strcpy(new_entry.location, user->location);
+		new_entry.time = time(NULL);
+		
+		if (i == 10) {
+			j = 1;
+		} else {
+			j = 0;
+		}
+		fptr = fopen("last10.dat", "wb");
+		for (;j<i;j++) {
+			fwrite(&callers[j], sizeof(struct last10_callers), 1, fptr);
+		}
+		fwrite(&new_entry, sizeof(struct last10_callers), 1, fptr);
+		fclose(fptr);
+	}
+	sprintf(buffer, "Press any key to continue...\r\n");
+	s_putstring(socket, buffer);
+	s_getc(socket);	
+}
+
 void display_info(int socket) {
 	char buffer[256];
 	struct utsname name;
@@ -517,6 +570,8 @@ void runbbs(int socket, char *config_path) {
 	
 	// display info
 	display_info(socket);
+	
+	display_last10_callers(socket, user, 1);
 	
 	// main menu
 	main_menu(socket, user);

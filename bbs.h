@@ -7,6 +7,12 @@
 #define VERSION_MINOR 1
 #define VERSION_STR "dev"
 
+struct last10_callers {
+	char name[17];
+	char location[33];
+	time_t time;
+}__attribute__((packed));
+
 struct door_config {
 	char *name;
 	char key;
@@ -80,6 +86,7 @@ extern void s_readstring(int socket, char *buffer, int max);
 extern char s_getc(int socket);
 extern void disconnect(int socket);
 extern void display_info(int socket);
+extern void display_last10_callers(int socket, struct user_record *user, int record);
 
 extern int save_user(struct user_record *user);
 extern int check_user(char *loginname);

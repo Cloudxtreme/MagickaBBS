@@ -20,6 +20,11 @@ void main_menu(int socket, struct user_record *user) {
 		c = s_getc(socket);
 		
 		switch(tolower(c)) {
+			case '1':
+				{
+					display_last10_callers(socket, user, 0);
+				}
+				break;
 			case 'd':
 				{
 					doquit = door_menu(socket, user);
