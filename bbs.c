@@ -54,16 +54,16 @@ struct fido_addr *parse_fido_addr(const char *str) {
 				{
 					switch (state) {
 						case 0:
-							ret->zone *= 10 + (str[c] - '0');
+							ret->zone = ret->zone * 10 + (str[c] - '0');
 							break;
 						case 1:
-							ret->net *= 10 + (str[c] - '0');
+							ret->net = ret->net * 10 + (str[c] - '0');
 							break;
 						case 2:
-							ret->node *= 10 + (str[c] - '0');
+							ret->node = ret->node * 10 + (str[c] - '0');
 							break;
 						case 3:
-							ret->point *= 10 + (str[c] - '0');
+							ret->point = ret->point * 10 + (str[c] - '0');
 							break;
 					}
 				}
