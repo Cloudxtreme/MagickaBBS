@@ -309,8 +309,11 @@ void read_message(int socket, struct user_record *user, int mailno) {
 	}
 	
 	
-	
-	sprintf(buffer, "\e[2J\e[1;32mFrom    : \e[1;37m%s\r\n", from);
+	if (from_addr != NULL) {
+		sprintf(buffer, "\e[2J\e[1;32mFrom    : \e[1;37m%s (%d:%d/%d.%d)\r\n", from, from_addr->zone, from_addr->net, from_addr->node, from_addr->point);
+	} else {
+		sprintf(buffer, "\e[2J\e[1;32mFrom    : \e[1;37m%s\r\n", from);
+	}
 	s_putstring(socket, buffer);
 	sprintf(buffer, "\e[1;32mTo      : \e[1;37m%s\r\n", to);
 	s_putstring(socket, buffer);
