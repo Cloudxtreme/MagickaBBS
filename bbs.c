@@ -217,34 +217,37 @@ char s_getchar(int socket) {
 	unsigned char c;
 	int len;
 
-	len = read(socket, &c, 1);
+	do {
 
-	if (len == 0) {
-		disconnect(socket);
-	}
+		len = read(socket, &c, 1);
+
+		if (len == 0) {
+			disconnect(socket);
+		}
+			
+		while (c == 255) {
+			len = read(socket, &c, 1);
+			if (len == 0) {
+				disconnect(socket);
+			}
+			len = read(socket, &c, 1);
+			if (len == 0) {
+				disconnect(socket);
+			}
+			len = read(socket, &c, 1);
+			if (len == 0) {
+				disconnect(socket);
+			}		
+		}
+
+
 		
-	while (c == 255) {
-		len = read(socket, &c, 1);
-		if (len == 0) {
-			disconnect(socket);
+		if (c == '\r') {
+			if (len == 0) {
+				disconnect(socket);
+			}
 		}
-		len = read(socket, &c, 1);
-		if (len == 0) {
-			disconnect(socket);
-		}
-		len = read(socket, &c, 1);
-		if (len == 0) {
-			disconnect(socket);
-		}		
-	}
-	
-	if (c == '\r' || c == '\n') {
-		len = read(socket, &c, 1);
-		if (len == 0) {
-			disconnect(socket);
-		}
-	}
-	
+	} while (c == '\n');
 	usertimeout = 10;
 	return (char)c;
 }
