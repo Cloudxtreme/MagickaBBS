@@ -37,6 +37,21 @@ struct mail_conference {
 	struct mail_area **mail_areas;
 };
 
+struct file_sub {
+	char *name;
+	char *database;
+	int upload_sec_level;
+	int download_sec_level;
+};
+
+struct file_directory {
+	char *name;
+	char *path;
+	int sec_level;
+	int file_sub_count;
+	struct file_sub **file_subs;
+};
+
 struct bbs_config {
 	char *bbs_name;
 	char *sysop_name;
@@ -51,6 +66,8 @@ struct bbs_config {
 	struct mail_conference **mail_conferences;
 	int door_count;
 	struct door_config **doors;
+	int file_directory_count;
+	struct file_directory **file_directories;
 };
 
 struct sec_level_t {

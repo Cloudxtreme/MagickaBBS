@@ -88,6 +88,53 @@ static int door_config_handler(void* user, const char* section, const char* name
 	
 	return 1;
 }
+
+static int file_sub_handler(void* user, const char* section, const char* name,
+                   const char* value)
+{
+	struct file_directory *fd = (struct file_directory *)user;
+	int i;
+	
+	if (strcasecmp(section, "main") == 0) {
+		if (strcasecmp(name, "visible sec level")) {
+			fd->sec_level = atoi(value);
+		}
+	} else {
+		// check if it's partially filled in
+		for (i=0;i<fd->file_sub_count;i++) {
+			if (strcasecmp(fd->file_subs[i]->name, section) == 0) {
+				if (strcasecmp(name, "upload sec level") == 0) {
+					fd->file_subs[i]->upload_sec_level = atoi(value);
+				} else if (strcasecmp(name, "download sec level") == 0) {
+					fd->file_subs[i]->download_sec_level = atoi(value);
+				} else if (strcasecmp(name, "database") == 0) {
+					fd->file_subs[i]->database = strdup(value);
+				}
+				return 1;
+			}
+		}
+		if (fd->file_sub_count == 0) {
+			fd->file_subs = (struct file_sub **)malloc(sizeof(struct file_sub *));
+		} else {
+			fd->file_subs = (struct file_sub **)realloc(fd->file_subs, sizeof(struct file_sub *) * (fd->file_sub_count + 1));
+		}
+		
+		fd->file_subs[fd->file_sub_count] = (struct file_sub *)malloc(sizeof(struct file_sub));
+		
+		fd->file_subs[fd->file_sub_count]->name = strdup(section);
+		if (strcasecmp(name, "upload sec level") == 0) {
+			fd->file_subs[fd->file_sub_count]->upload_sec_level = atoi(value);
+		} else if (strcasecmp(name, "download sec level") == 0) {
+			fd->file_subs[fd->file_sub_count]->download_sec_level = atoi(value);
+		} else if (strcasecmp(name, "database") == 0) {
+			fd->file_subs[fd->file_sub_count]->database = strdup(value);
+		}
+		fd->file_sub_count++;
+	}
+	return 1;
+}
+
+
 static int mail_area_handler(void* user, const char* section, const char* name,
                    const char* value)
 {
@@ -180,6 +227,18 @@ static int handler(void* user, const char* section, const char* name,
 		conf->mail_conferences[conf->mail_conference_count]->path = strdup(value);
 		conf->mail_conferences[conf->mail_conference_count]->mail_area_count = 0;
 		conf->mail_conference_count++;
+	} else if (strcasecmp(section, "file directories") == 0) {
+		if (conf->file_directory_count == 0) {
+			conf->file_directories = (struct file_directory **)malloc(sizeof(struct file_directory *));
+		} else {
+			conf->file_directories = (struct file_directory **)realloc(conf->file_directories, sizeof(struct file_directory *) * (conf->file_directory_count + 1));
+		}
+		
+		conf->file_directories[conf->file_directory_count] = (struct file_directory *)malloc(sizeof(struct file_directory));
+		conf->file_directories[conf->file_directory_count]->name = strdup(name);
+		conf->file_directories[conf->file_directory_count]->path = strdup(value);
+		conf->file_directories[conf->file_directory_count]->file_sub_count = 0;
+		conf->file_directory_count++;
 	}
 	
 	return 1;
@@ -430,6 +489,7 @@ void runbbs(int socket, char *config_path) {
 
 	conf.mail_conference_count = 0;
 	conf.door_count = 0;
+	conf.file_directory_count = 0;
 	
 	// Load BBS data
 	if (ini_parse(config_path, handler, &conf) <0) {
@@ -443,7 +503,14 @@ void runbbs(int socket, char *config_path) {
 			exit(-1);
 		}			
 	}
-	
+	// Load file Subs
+	for (i=0;i<conf.file_directory_count;i++) {
+		if (ini_parse(conf.file_directories[i]->path, file_sub_handler, conf.file_directories[i]) <0) {
+			printf("Unable to load configuration ini (%s)!\n", conf.file_directories[i]->path);
+			exit(-1);
+		}			
+	}
+		
 	if (ini_parse("config/doors.ini", door_config_handler, &conf) <0) {
 		printf("Unable to load configuration ini (doors.ini)!\n");
 		exit(-1);
