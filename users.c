@@ -234,6 +234,22 @@ struct user_record *check_user_pass(int socket, char *loginname, char *password)
 		exit(-1);
 	}	
 	
+	if (user->cur_mail_conf > conf.mail_conference_count) {
+		user->cur_mail_conf = 0;
+	}
+	if (user->cur_file_dir > conf.file_directory_count) {
+		user->cur_file_dir = 0;
+	}
+	
+	if (user->cur_mail_area > conf.mail_conferences[user->cur_mail_conf]->mail_area_count) {
+		user->cur_mail_area = 0;
+	}
+
+	if (user->cur_file_sub > conf.file_directories[user->cur_file_sub]->file_sub_count) {
+		user->cur_file_sub = 0;
+	}
+
+	
     return user;		   
 }
 

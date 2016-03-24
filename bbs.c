@@ -20,6 +20,63 @@ int gSocket;
 
 int usertimeout;
 
+struct fido_addr *parse_fido_addr(const char *str) {
+	struct fido_addr *ret = (struct fido_addr *)malloc(sizeof(struct fido_addr));
+	int c;
+	int state = 0;
+	
+	ret->zone = 0;
+	ret->net = 0;
+	ret->node = 0;
+	ret->point = 0;
+	
+	for (c=0;c<strlen(str);c++) {
+		switch(str[c]) {
+			case ':':
+				state = 1;
+				break;
+			case '/':
+				state = 2;
+				break;
+			case '.':
+				state = 3;
+				break;
+			case '0':
+			case '1':
+			case '2':
+			case '3':
+			case '4':
+			case '5':
+			case '6':
+			case '7':
+			case '8':
+			case '9':
+				{
+					switch (state) {
+						case 0:
+							ret->zone *= 10 + (str[c] - '0');
+							break;
+						case 1:
+							ret->net *= 10 + (str[c] - '0');
+							break;
+						case 2:
+							ret->node *= 10 + (str[c] - '0');
+							break;
+						case 3:
+							ret->point *= 10 + (str[c] - '0');
+							break;
+					}
+				}
+				break;
+			default:
+				free(ret);
+				return NULL;
+		}
+	}
+	return ret;
+}
+
+
 void timer_handler(int signum) {
 	if (signum == SIGALRM) {
 		if (gUser != NULL) {
@@ -157,6 +214,14 @@ static int mail_area_handler(void* user, const char* section, const char* name,
 				mc->realnames = 0;
 			}
 		}
+	} else if (strcasecmp(section, "network") == 0) {
+		if (strcasecmp(name, "type") == 0) {
+			if (strcasecmp(value, "fido") == 0) {
+				mc->nettype = NETWORK_FIDO;
+			}
+		} else if (strcasecmp(name, "fido node") == 0) {
+			mc->fidoaddr = parse_fido_addr(value);
+		}
 	} else {
 		// check if it's partially filled in
 		for (i=0;i<mc->mail_area_count;i++) {
@@ -167,6 +232,14 @@ static int mail_area_handler(void* user, const char* section, const char* name,
 					mc->mail_areas[i]->write_sec_level = atoi(value);
 				} else if (strcasecmp(name, "path") == 0) {
 					mc->mail_areas[i]->path = strdup(value);
+				} else if (strcasecmp(name, "type") == 0) {
+					if (strcasecmp(value, "local") == 0) {
+						mc->mail_areas[i]->type = TYPE_LOCAL_AREA;
+					} else if (strcasecmp(value, "echo") == 0) {
+						mc->mail_areas[i]->type = TYPE_ECHOMAIL_AREA;
+					} else if (strcasecmp(value, "netmail") == 0) {
+						mc->mail_areas[i]->type = TYPE_NETMAIL_AREA;
+					}
 				}
 				return 1;
 			}
@@ -186,6 +259,14 @@ static int mail_area_handler(void* user, const char* section, const char* name,
 			mc->mail_areas[mc->mail_area_count]->write_sec_level = atoi(value);
 		} else if (strcasecmp(name, "path") == 0) {
 			mc->mail_areas[mc->mail_area_count]->path = strdup(value);
+		} else if (strcasecmp(name, "type") == 0) {
+			if (strcasecmp(value, "local") == 0) {
+				mc->mail_areas[mc->mail_area_count]->type = TYPE_LOCAL_AREA;
+			} else if (strcasecmp(value, "echo") == 0) {
+				mc->mail_areas[mc->mail_area_count]->type = TYPE_ECHOMAIL_AREA;
+			} else if (strcasecmp(value, "netmail") == 0) {
+				mc->mail_areas[mc->mail_area_count]->type = TYPE_NETMAIL_AREA;
+			}
 		}
 		mc->mail_area_count++;
 	}

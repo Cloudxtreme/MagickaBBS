@@ -273,7 +273,7 @@ void read_message(int socket, struct user_record *user, int mailno) {
 	int lines = 0;
 	char c;
 	char *replybody;
-	
+	struct fido_addr *from_addr = NULL;
 	jb = open_jam_base(conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->path);
 	if (!jb) {
 		printf("Error opening JAM base.. %s\n", conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->path);
@@ -300,7 +300,12 @@ void read_message(int socket, struct user_record *user, int mailno) {
 			to = (char *)malloc(jsp->Fields[z]->DatLen + 1);
 			memset(to, 0, jsp->Fields[z]->DatLen + 1);
 			memcpy(to, jsp->Fields[z]->Buffer, jsp->Fields[z]->DatLen);
-		}						
+		}	
+		if (jsp->Fields[z]->LoID == JAMSFLD_OADDRESS) {
+			memset(buffer, 0, jsp->Fields[z]->DatLen + 1);
+			memcpy(buffer, jsp->Fields[z]->Buffer, jsp->Fields[z]->DatLen);
+			from_addr = parse_fido_addr(buffer);
+		}							
 	}
 	
 	
@@ -378,6 +383,9 @@ void read_message(int socket, struct user_record *user, int mailno) {
 					free(subject);
 					free(to);
 					free(from);
+					if (from_addr != NULL) {
+						free(from_addr);
+					}
 					return;
 				}
 							
@@ -403,7 +411,49 @@ void read_message(int socket, struct user_record *user, int mailno) {
 				jsf.DatLen = strlen(subject);
 				jsf.Buffer = (uchar *)subject;
 				JAM_PutSubfield(jsp, &jsf);
-							
+				
+				if (conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->type == TYPE_ECHOMAIL_AREA) {
+					jmh.Attribute |= MSG_TYPEECHO;
+					
+					if (conf.mail_conferences[user->cur_mail_conf]->nettype == NETWORK_FIDO) {
+						sprintf(buffer, "%d:%d/%d.%d", conf.mail_conferences[user->cur_mail_conf]->fidoaddr->zone,
+													conf.mail_conferences[user->cur_mail_conf]->fidoaddr->net,
+													conf.mail_conferences[user->cur_mail_conf]->fidoaddr->node,
+													conf.mail_conferences[user->cur_mail_conf]->fidoaddr->point);
+						jsf.LoID   = JAMSFLD_OADDRESS;
+						jsf.HiID   = 0;
+						jsf.DatLen = strlen(buffer);
+						jsf.Buffer = (uchar *)buffer;
+						JAM_PutSubfield(jsp, &jsf);
+					}
+				} else if (conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->type == TYPE_NETMAIL_AREA) {
+					jmh.Attribute |= MSG_TYPENET;
+					jmh.Attribute |= MSG_KILLSENT;
+					if (conf.mail_conferences[user->cur_mail_conf]->nettype == NETWORK_FIDO) {
+						sprintf(buffer, "%d:%d/%d.%d", conf.mail_conferences[user->cur_mail_conf]->fidoaddr->zone,
+													conf.mail_conferences[user->cur_mail_conf]->fidoaddr->net,
+													conf.mail_conferences[user->cur_mail_conf]->fidoaddr->node,
+													conf.mail_conferences[user->cur_mail_conf]->fidoaddr->point);
+						jsf.LoID   = JAMSFLD_OADDRESS;
+						jsf.HiID   = 0;
+						jsf.DatLen = strlen(buffer);
+						jsf.Buffer = (uchar *)buffer;
+						JAM_PutSubfield(jsp, &jsf);
+						
+						if (from_addr != NULL) {
+						
+							sprintf(buffer, "%d:%d/%d.%d", from_addr->zone,
+														from_addr->net,
+														from_addr->node,
+														from_addr->point);
+							jsf.LoID   = JAMSFLD_DADDRESS;
+							jsf.HiID   = 0;
+							jsf.DatLen = strlen(buffer);
+							jsf.Buffer = (uchar *)buffer;
+							JAM_PutSubfield(jsp, &jsf);						
+						}
+					}					
+				}
 							
 				while (1) {
 					z = JAM_LockMB(jb, 100);
@@ -418,6 +468,9 @@ void read_message(int socket, struct user_record *user, int mailno) {
 						free(to);
 						free(from);
 						printf("Failed to lock msg base!\n");
+						if (from_addr != NULL) {
+							free(from_addr);
+						}						
 						return;
 					}
 				}
@@ -447,7 +500,9 @@ void read_message(int socket, struct user_record *user, int mailno) {
 	if (subject != NULL) {
 		free(subject);
 	}
-	
+	if (from_addr != NULL) {
+		free(from_addr);
+	}
 }
 
 int mail_menu(int socket, struct user_record *user) {
@@ -480,6 +535,7 @@ int mail_menu(int socket, struct user_record *user) {
 	ulong jam_crc;
 	unsigned int lastmsg,currmsg;
 	int lines;
+	struct fido_addr *from_addr;
 	
 	while (!domail) {
 		s_displayansi(socket, "mailmenu");
@@ -510,7 +566,17 @@ int mail_menu(int socket, struct user_record *user) {
 							break;
 						} 
 					}
-					
+					if (conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->type == TYPE_NETMAIL_AREA) {
+						s_putstring(socket, "\r\nADDR: ");
+						s_readstring(socket, buffer, 32);
+						from_addr = parse_fido_addr(buffer);
+						if (!from_addr) {
+							s_putstring(socket, "\r\n\r\nInvalid Address\r\n");
+							break;							
+						} else {
+							sprintf(buffer, "\r\nMailing to %d:%d/%d.%d\r\n", from_addr->zone, from_addr->net, from_addr->node, from_addr->point);
+						}
+					}
 					to = strdup(buffer);
 					s_putstring(socket, "\r\nSUBJECT: ");
 					s_readstring(socket, buffer, 25);
@@ -557,6 +623,48 @@ int mail_menu(int socket, struct user_record *user) {
 						jsf.Buffer = (uchar *)subject;
 						JAM_PutSubfield(jsp, &jsf);
 						
+						if (conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->type == TYPE_ECHOMAIL_AREA) {
+							jmh.Attribute |= MSG_TYPEECHO;
+							
+							if (conf.mail_conferences[user->cur_mail_conf]->nettype == NETWORK_FIDO) {
+								sprintf(buffer, "%d:%d/%d.%d", conf.mail_conferences[user->cur_mail_conf]->fidoaddr->zone,
+															conf.mail_conferences[user->cur_mail_conf]->fidoaddr->net,
+															conf.mail_conferences[user->cur_mail_conf]->fidoaddr->node,
+															conf.mail_conferences[user->cur_mail_conf]->fidoaddr->point);
+								jsf.LoID   = JAMSFLD_OADDRESS;
+								jsf.HiID   = 0;
+								jsf.DatLen = strlen(buffer);
+								jsf.Buffer = (uchar *)buffer;
+								JAM_PutSubfield(jsp, &jsf);
+							}
+						} else if (conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->type == TYPE_NETMAIL_AREA) {
+							jmh.Attribute |= MSG_TYPENET;
+							jmh.Attribute |= MSG_KILLSENT;
+							if (conf.mail_conferences[user->cur_mail_conf]->nettype == NETWORK_FIDO) {
+								sprintf(buffer, "%d:%d/%d.%d", conf.mail_conferences[user->cur_mail_conf]->fidoaddr->zone,
+															conf.mail_conferences[user->cur_mail_conf]->fidoaddr->net,
+															conf.mail_conferences[user->cur_mail_conf]->fidoaddr->node,
+															conf.mail_conferences[user->cur_mail_conf]->fidoaddr->point);
+								jsf.LoID   = JAMSFLD_OADDRESS;
+								jsf.HiID   = 0;
+								jsf.DatLen = strlen(buffer);
+								jsf.Buffer = (uchar *)buffer;
+								JAM_PutSubfield(jsp, &jsf);
+								
+								if (from_addr != NULL) {
+								
+									sprintf(buffer, "%d:%d/%d.%d", from_addr->zone,
+																from_addr->net,
+																from_addr->node,
+																from_addr->point);
+									jsf.LoID   = JAMSFLD_DADDRESS;
+									jsf.HiID   = 0;
+									jsf.DatLen = strlen(buffer);
+									jsf.Buffer = (uchar *)buffer;
+									JAM_PutSubfield(jsp, &jsf);						
+								}
+							}					
+						}
 						
 						while (1) {
 							z = JAM_LockMB(jb, 100);
@@ -833,6 +941,9 @@ int mail_menu(int socket, struct user_record *user) {
 						jsf.Buffer = (uchar *)subject;
 						JAM_PutSubfield(jsp, &jsf);
 						
+						
+						
+
 						
 						while (1) {
 							z = JAM_LockMB(jb, 100);

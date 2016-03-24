@@ -7,6 +7,19 @@
 #define VERSION_MINOR 1
 #define VERSION_STR "dev"
 
+#define NETWORK_FIDO 0
+
+#define TYPE_LOCAL_AREA    0
+#define TYPE_NETMAIL_AREA  1
+#define TYPE_ECHOMAIL_AREA 2
+
+struct fido_addr {
+	unsigned short zone;
+	unsigned short net;
+	unsigned short node;
+	unsigned short point;
+};
+
 struct last10_callers {
 	char name[17];
 	char location[33];
@@ -25,16 +38,19 @@ struct mail_area {
 	char *path;
 	int read_sec_level;
 	int write_sec_level;
+	int type;
 };
 
 struct mail_conference {
 	char *name;
 	char *path;
 	int networked;
+	int nettype;
 	int realnames;
 	int sec_level;
 	int mail_area_count;
 	struct mail_area **mail_areas;
+	struct fido_addr *fidoaddr;
 };
 
 struct file_sub {
@@ -95,7 +111,7 @@ struct user_record {
 
 
 extern void runbbs(int sock, char *config);
-
+extern struct fido_addr *parse_fido_addr(const char *str);
 extern void s_putchar(int socket, char c);
 extern void s_putstring(int socket, char *c);
 extern void s_displayansi(int socket, char *file);
