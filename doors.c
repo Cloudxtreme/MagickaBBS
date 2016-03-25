@@ -2,6 +2,10 @@
 #include <sys/stat.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <libgen.h>
+#include <sys/wait.h>
 #include "bbs.h"
 
 extern struct bbs_config conf;
@@ -11,6 +15,8 @@ int write_door32sys(int socket, struct user_record *user) {
 	struct stat s;
 	char buffer[256];
 	FILE *fptr;
+	char *ptr;
+	int i;
 	
 	sprintf(buffer, "%s/node%d", conf.bbs_path, mynode);
 	
@@ -40,16 +46,94 @@ int write_door32sys(int socket, struct user_record *user) {
 	fprintf(fptr, "%d\n", mynode);
 	
 	fclose(fptr);
+	
+	// create dorinfo1.def
+	
+	sprintf(buffer, "%s/node%d", conf.bbs_path, mynode);
+	
+	if (stat(buffer, &s) != 0) {
+		mkdir(buffer, 0755);
+	}
+	
+	sprintf(buffer, "%s/node%d/dorinfo1.def", conf.bbs_path, mynode);
+	
+	fptr = fopen(buffer, "w");
+	
+	if (!fptr) {
+		printf("Unable to open %s for writing!\n", buffer);
+		return 1;
+	}
+	
+	strcpy(buffer, conf.sysop_name);
+	
+	ptr = NULL;
+	
+	for (i=0;i<strlen(buffer);i++) {
+		if (buffer[i] == ' ') {
+			ptr = buffer[i+1];
+			buffer[i] = '\0';
+			break;
+		}
+	}
+	
+	fprintf(fptr, "%s\n", conf.bbs_name); // telnet type
+	fprintf(fptr, "%s\n", buffer);
+	if (ptr != NULL) {
+		fprintf(fptr, "%s\n", ptr);
+	} else {
+		fprintf(fptr, "\n");
+	}
+	fprintf(fptr, "1\n"); // com port
+	fprintf(fptr, "38400\n");
+	fprintf(fptr, "0\n");
+	fprintf(fptr, "%s\n", user->firstname);
+	fprintf(fptr, "%s\n", user->lastname);
+	fprintf(fptr, "%s\n", user->location);
+	fprintf(fptr, "1\n");
+	fprintf(fptr, "30\n");
+	fprintf(fptr, "%d\n", user->timeleft);
+	fprintf(fptr, "-1\n");
+
+	
+	fclose(fptr);
+	
+	
 	return 0;
 }
 
 void rundoor(int socket, struct user_record *user, char *cmd, int stdio) {
 	char buffer[256];
+	int pid;
+	char *arguments[4];
+	int ret;
+	char c;
+	int len;
+	int status;
+	
 	if (write_door32sys(socket, user) != 0) {
 		return;
 	}
 	
 	if (stdio) {
+		
+		arguments[0] = strdup(basename(cmd));
+		sprintf(buffer, "%d", mynode);
+		arguments[1] = strdup(buffer);
+		sprintf(buffer, "%d", socket);
+		arguments[2] = strdup(buffer);
+		arguments[3] = NULL;
+		
+		pid = fork();
+		if (pid < 0) {
+			return;
+		} else if (pid == 0) {
+			// forked process
+			dup2(socket, 0);
+			dup2(socket, 1);
+			execvp(cmd, arguments);
+		} else {
+			waitpid(pid, &status, 0);
+		}
 	} else {
 		sprintf(buffer, "%s %d %d", cmd, mynode, socket);
 		system(buffer);
