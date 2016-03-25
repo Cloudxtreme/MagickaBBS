@@ -134,4 +134,6 @@ extern int mail_getemailcount(struct user_record *user);
 extern int mail_menu(int socket, struct user_record *user);
 
 extern int door_menu(int socket, struct user_record *user);
+
+extern void bbs_list(int socket, struct user_record *user);
 #endif

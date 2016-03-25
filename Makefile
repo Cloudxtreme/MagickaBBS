@@ -3,7 +3,7 @@ CFLAGS=-I/usr/local/include
 DEPS = bbs.h
 JAMLIB = jamlib/jamlib.a
 
-OBJ = inih/ini.o bbs.o main.o users.o main_menu.o mail_menu.o doors.o
+OBJ = inih/ini.o bbs.o main.o users.o main_menu.o mail_menu.o doors.o bbs_list.o
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 

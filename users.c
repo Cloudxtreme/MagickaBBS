@@ -159,6 +159,7 @@ int inst_user(struct user_record *user) {
     
     user->id = sqlite3_last_insert_rowid(db);
     
+    sqlite3_finalize(res);   
 	sqlite3_close(db);
 	return 1;
 }

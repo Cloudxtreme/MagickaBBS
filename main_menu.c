@@ -23,6 +23,11 @@ void main_menu(int socket, struct user_record *user) {
 		c = s_getc(socket);
 		
 		switch(tolower(c)) {
+			case 'l':
+				{
+					bbs_list(socket, user);
+				}
+				break;
 			case 'u':
 				{
 					list_users(socket, user);

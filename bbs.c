@@ -667,14 +667,12 @@ void runbbs(int socket, char *config_path) {
 					disconnect(socket);
 				}
 				fgets(buffer, 256, nodefile);
-				
-				buffer[strlen(buffer) - 1] = '\0';
-				
+					
 				if (strcasecmp(user->loginname, buffer) == 0) {
 					fclose(nodefile);
 					s_putstring(socket, "You are already logged in.\r\n");
 					disconnect(socket);
-				}
+				} 
 				fclose(nodefile);
 			}
 		}
