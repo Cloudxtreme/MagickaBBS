@@ -279,7 +279,7 @@ void read_message(int socket, struct user_record *user, int mailno) {
 		printf("Error opening JAM base.. %s\n", conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->path);
 		return;
 	}
-
+	memset(&jmh, 0, sizeof(s_JamMsgHeader));
 	z = JAM_ReadMsgHeader(jb, mailno, &jmh, &jsp);
 	if (z != 0) {
 		return;
@@ -388,6 +388,7 @@ void read_message(int socket, struct user_record *user, int mailno) {
 					free(from);
 					if (from_addr != NULL) {
 						free(from_addr);
+						from_addr = NULL;
 					}
 					return;
 				}
@@ -473,6 +474,7 @@ void read_message(int socket, struct user_record *user, int mailno) {
 						printf("Failed to lock msg base!\n");
 						if (from_addr != NULL) {
 							free(from_addr);
+							from_addr = NULL;
 						}						
 						return;
 					}
@@ -505,6 +507,7 @@ void read_message(int socket, struct user_record *user, int mailno) {
 	}
 	if (from_addr != NULL) {
 		free(from_addr);
+		from_addr = NULL;
 	}
 }
 
@@ -517,6 +520,7 @@ int mail_menu(int socket, struct user_record *user) {
 	int i;
 	int j;
 	int z;
+
 	
 	s_JamBase *jb;
 	s_JamBaseHeader jbh;
@@ -538,7 +542,7 @@ int mail_menu(int socket, struct user_record *user) {
 	ulong jam_crc;
 	unsigned int lastmsg,currmsg;
 	int lines;
-	struct fido_addr *from_addr;
+	struct fido_addr *from_addr = NULL;
 	
 	while (!domail) {
 		s_displayansi(socket, "mailmenu");
@@ -599,7 +603,7 @@ int mail_menu(int socket, struct user_record *user) {
 						}
 						
 						JAM_ClearMsgHeader( &jmh );
-						jmh.DateWritten = time(NULL);
+						jmh.DateWritten = (uint32_t)time(NULL);
 						jmh.Attribute |= MSG_LOCAL;
 						if (conf.mail_conferences[user->cur_mail_conf]->realnames == 0) {
 							strcpy(buffer, user->loginname);
@@ -608,6 +612,7 @@ int mail_menu(int socket, struct user_record *user) {
 						}
 						
 						jsp = JAM_NewSubPacket();
+						
 						jsf.LoID   = JAMSFLD_SENDERNAME;
 						jsf.HiID   = 0;
 						jsf.DatLen = strlen(buffer);
@@ -625,7 +630,7 @@ int mail_menu(int socket, struct user_record *user) {
 						jsf.DatLen = strlen(subject);
 						jsf.Buffer = (uchar *)subject;
 						JAM_PutSubfield(jsp, &jsf);
-						
+						/*
 						if (conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->type == TYPE_ECHOMAIL_AREA) {
 							jmh.Attribute |= MSG_TYPEECHO;
 							
@@ -640,10 +645,12 @@ int mail_menu(int socket, struct user_record *user) {
 								jsf.Buffer = (uchar *)buffer;
 								JAM_PutSubfield(jsp, &jsf);
 							}
-						} else if (conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->type == TYPE_NETMAIL_AREA) {
+						} else*/ 
+						if (conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->type == TYPE_NETMAIL_AREA) {
 							jmh.Attribute |= MSG_TYPENET;
 							jmh.Attribute |= MSG_KILLSENT;
 							if (conf.mail_conferences[user->cur_mail_conf]->nettype == NETWORK_FIDO) {
+								/*
 								sprintf(buffer, "%d:%d/%d.%d", conf.mail_conferences[user->cur_mail_conf]->fidoaddr->zone,
 															conf.mail_conferences[user->cur_mail_conf]->fidoaddr->net,
 															conf.mail_conferences[user->cur_mail_conf]->fidoaddr->node,
@@ -653,7 +660,7 @@ int mail_menu(int socket, struct user_record *user) {
 								jsf.DatLen = strlen(buffer);
 								jsf.Buffer = (uchar *)buffer;
 								JAM_PutSubfield(jsp, &jsf);
-								
+								*/
 								if (from_addr != NULL) {
 								
 									sprintf(buffer, "%d:%d/%d.%d", from_addr->zone,
@@ -664,7 +671,9 @@ int mail_menu(int socket, struct user_record *user) {
 									jsf.HiID   = 0;
 									jsf.DatLen = strlen(buffer);
 									jsf.Buffer = (uchar *)buffer;
-									JAM_PutSubfield(jsp, &jsf);						
+									JAM_PutSubfield(jsp, &jsf);
+									free(from_addr);	
+									from_addr = NULL;			
 								}
 							}					
 						}
@@ -720,7 +729,10 @@ int mail_menu(int socket, struct user_record *user) {
 							i = atoi(buffer);
 							closed = 0;
 							s_putstring(socket, "\e[2J\e[1;37;44m[MSG#] Subject                   From            To              Date          \r\n\e[0m");
+							
 							for (j=i;j<jbh.ActiveMsgs;j++) {
+								memset(&jmh, 0, sizeof(s_JamMsgHeader));
+								printf("MSG %d\n", j);
 								z = JAM_ReadMsgHeader(jb, j, &jmh, &jsp);
 								if (z != 0) {
 									printf("Failed to read msg header: %d Erro %d\n", z, JAM_Errno(jb));
@@ -732,7 +744,7 @@ int mail_menu(int socket, struct user_record *user) {
 									JAM_DelSubPacket(jsp);
 									continue;
 								}
-
+							
 								if (jmh.Attribute & MSG_NODISP) {
 									printf("No Display\n");
 									JAM_DelSubPacket(jsp);
@@ -920,7 +932,7 @@ int mail_menu(int socket, struct user_record *user) {
 						}
 						
 						JAM_ClearMsgHeader( &jmh );
-						jmh.DateWritten = time(NULL);
+						jmh.DateWritten = (uint32_t)time(NULL);
 						jmh.Attribute |= MSG_PRIVATE;
 						
 						strcpy(buffer, user->loginname);	
@@ -1159,7 +1171,7 @@ int mail_menu(int socket, struct user_record *user) {
 										}
 													
 										JAM_ClearMsgHeader( &jmh );
-										jmh.DateWritten = time(NULL);
+										jmh.DateWritten = (uint32_t)time(NULL);
 										jmh.Attribute |= MSG_PRIVATE;
 										
 										jsp = JAM_NewSubPacket();
