@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
-#include <jamlib/jam.h>
+#include "jamlib/jam.h"
 #include "bbs.h"
 
 extern struct bbs_config conf; 
