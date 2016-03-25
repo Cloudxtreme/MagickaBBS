@@ -70,7 +70,7 @@ int write_door32sys(int socket, struct user_record *user) {
 	
 	for (i=0;i<strlen(buffer);i++) {
 		if (buffer[i] == ' ') {
-			ptr = buffer[i+1];
+			ptr = &buffer[i+1];
 			buffer[i] = '\0';
 			break;
 		}
