@@ -8,3 +8,5 @@ doors/*
 last10.dat
 ansis/*
 config/*
+illusion/*
+*.a
