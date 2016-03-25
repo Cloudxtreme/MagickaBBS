@@ -13,12 +13,12 @@ s_JamBase *open_jam_base(char *path) {
 	int ret;
 	s_JamBase *jb;
 	
-	ret = JAM_OpenMB((uchar *)path, &jb);
+	ret = JAM_OpenMB((char *)path, &jb);
 	
 	if (ret != 0) {
 		if (ret == JAM_IO_ERROR) {
 			free(jb);
-			ret = JAM_CreateMB((uchar *)path, 1, &jb);
+			ret = JAM_CreateMB((char *)path, 1, &jb);
 			if (ret != 0) {
 				free(jb);
 				return NULL;
@@ -328,7 +328,7 @@ void read_message(int socket, struct user_record *user, int mailno) {
 
 	body = (char *)malloc(jmh.TxtLen);
 	
-	JAM_ReadMsgText(jb, jmh.TxtOffset, jmh.TxtLen, (uchar *)body);
+	JAM_ReadMsgText(jb, jmh.TxtOffset, jmh.TxtLen, (char *)body);
 
 	JAM_CloseMB(jb);
 	
@@ -401,19 +401,19 @@ void read_message(int socket, struct user_record *user, int mailno) {
 				jsf.LoID   = JAMSFLD_SENDERNAME;
 				jsf.HiID   = 0;
 				jsf.DatLen = strlen(from);
-				jsf.Buffer = (uchar *)from;
+				jsf.Buffer = (char *)from;
 				JAM_PutSubfield(jsp, &jsf);
 
 				jsf.LoID   = JAMSFLD_RECVRNAME;
 				jsf.HiID   = 0;
 				jsf.DatLen = strlen(to);
-				jsf.Buffer = (uchar *)to;
+				jsf.Buffer = (char *)to;
 				JAM_PutSubfield(jsp, &jsf);
 							
 				jsf.LoID   = JAMSFLD_SUBJECT;
 				jsf.HiID   = 0;
 				jsf.DatLen = strlen(subject);
-				jsf.Buffer = (uchar *)subject;
+				jsf.Buffer = (char *)subject;
 				JAM_PutSubfield(jsp, &jsf);
 				
 				if (conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->type == TYPE_ECHOMAIL_AREA) {
@@ -433,7 +433,7 @@ void read_message(int socket, struct user_record *user, int mailno) {
 						jsf.LoID   = JAMSFLD_OADDRESS;
 						jsf.HiID   = 0;
 						jsf.DatLen = strlen(buffer);
-						jsf.Buffer = (uchar *)buffer;
+						jsf.Buffer = (char *)buffer;
 						JAM_PutSubfield(jsp, &jsf);
 					}
 				} else if (conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->type == TYPE_NETMAIL_AREA) {
@@ -453,7 +453,7 @@ void read_message(int socket, struct user_record *user, int mailno) {
 						jsf.LoID   = JAMSFLD_OADDRESS;
 						jsf.HiID   = 0;
 						jsf.DatLen = strlen(buffer);
-						jsf.Buffer = (uchar *)buffer;
+						jsf.Buffer = (char *)buffer;
 						JAM_PutSubfield(jsp, &jsf);
 						
 						if (from_addr != NULL) {
@@ -470,7 +470,7 @@ void read_message(int socket, struct user_record *user, int mailno) {
 							jsf.LoID   = JAMSFLD_DADDRESS;
 							jsf.HiID   = 0;
 							jsf.DatLen = strlen(buffer);
-							jsf.Buffer = (uchar *)buffer;
+							jsf.Buffer = (char *)buffer;
 							JAM_PutSubfield(jsp, &jsf);						
 						}
 					}					
@@ -496,7 +496,7 @@ void read_message(int socket, struct user_record *user, int mailno) {
 						return;
 					}
 				}
-				if (JAM_AddMessage(jb, &jmh, jsp, (uchar *)replybody, strlen(replybody))) {
+				if (JAM_AddMessage(jb, &jmh, jsp, (char *)replybody, strlen(replybody))) {
 					printf("Failed to add message\n");
 				}
 								
@@ -556,7 +556,7 @@ int mail_menu(int socket, struct user_record *user) {
 	
 	char *msg;
 	int closed;
-	ulong jam_crc;
+	uint32_t jam_crc;
 	unsigned int lastmsg,currmsg;
 	int lines;
 	struct fido_addr *from_addr = NULL;
@@ -633,19 +633,19 @@ int mail_menu(int socket, struct user_record *user) {
 						jsf.LoID   = JAMSFLD_SENDERNAME;
 						jsf.HiID   = 0;
 						jsf.DatLen = strlen(buffer);
-						jsf.Buffer = (uchar *)buffer;
+						jsf.Buffer = (char *)buffer;
 						JAM_PutSubfield(jsp, &jsf);
 
 						jsf.LoID   = JAMSFLD_RECVRNAME;
 						jsf.HiID   = 0;
 						jsf.DatLen = strlen(to);
-						jsf.Buffer = (uchar *)to;
+						jsf.Buffer = (char *)to;
 						JAM_PutSubfield(jsp, &jsf);
 						
 						jsf.LoID   = JAMSFLD_SUBJECT;
 						jsf.HiID   = 0;
 						jsf.DatLen = strlen(subject);
-						jsf.Buffer = (uchar *)subject;
+						jsf.Buffer = (char *)subject;
 						JAM_PutSubfield(jsp, &jsf);
 						
 						if (conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->type == TYPE_ECHOMAIL_AREA) {
@@ -665,7 +665,7 @@ int mail_menu(int socket, struct user_record *user) {
 								jsf.LoID   = JAMSFLD_OADDRESS;
 								jsf.HiID   = 0;
 								jsf.DatLen = strlen(buffer);
-								jsf.Buffer = (uchar *)buffer;
+								jsf.Buffer = (char *)buffer;
 								JAM_PutSubfield(jsp, &jsf);
 								
 							}
@@ -688,7 +688,7 @@ int mail_menu(int socket, struct user_record *user) {
 								jsf.LoID   = JAMSFLD_OADDRESS;
 								jsf.HiID   = 0;
 								jsf.DatLen = strlen(buffer);
-								jsf.Buffer = (uchar *)buffer;
+								jsf.Buffer = (char *)buffer;
 								JAM_PutSubfield(jsp, &jsf);
 								
 								if (from_addr != NULL) {
@@ -705,7 +705,7 @@ int mail_menu(int socket, struct user_record *user) {
 									jsf.LoID   = JAMSFLD_DADDRESS;
 									jsf.HiID   = 0;
 									jsf.DatLen = strlen(buffer);
-									jsf.Buffer = (uchar *)buffer;
+									jsf.Buffer = (char *)buffer;
 									JAM_PutSubfield(jsp, &jsf);
 									free(from_addr);	
 									from_addr = NULL;			
@@ -732,7 +732,7 @@ int mail_menu(int socket, struct user_record *user) {
 							break;
 						}
 						
-						if (JAM_AddMessage(jb, &jmh, jsp, (uchar *)msg, strlen(msg))) {
+						if (JAM_AddMessage(jb, &jmh, jsp, (char *)msg, strlen(msg))) {
 							printf("Failed to add message\n");
 						}
 							
@@ -978,19 +978,19 @@ int mail_menu(int socket, struct user_record *user) {
 						jsf.LoID   = JAMSFLD_SENDERNAME;
 						jsf.HiID   = 0;
 						jsf.DatLen = strlen(buffer);
-						jsf.Buffer = (uchar *)buffer;
+						jsf.Buffer = (char *)buffer;
 						JAM_PutSubfield(jsp, &jsf);
 
 						jsf.LoID   = JAMSFLD_RECVRNAME;
 						jsf.HiID   = 0;
 						jsf.DatLen = strlen(to);
-						jsf.Buffer = (uchar *)to;
+						jsf.Buffer = (char *)to;
 						JAM_PutSubfield(jsp, &jsf);
 						
 						jsf.LoID   = JAMSFLD_SUBJECT;
 						jsf.HiID   = 0;
 						jsf.DatLen = strlen(subject);
-						jsf.Buffer = (uchar *)subject;
+						jsf.Buffer = (char *)subject;
 						JAM_PutSubfield(jsp, &jsf);
 						
 						
@@ -1016,7 +1016,7 @@ int mail_menu(int socket, struct user_record *user) {
 							break;
 						}
 						
-						if (JAM_AddMessage(jb, &jmh, jsp, (uchar *)msg, strlen(msg))) {
+						if (JAM_AddMessage(jb, &jmh, jsp, (char *)msg, strlen(msg))) {
 							printf("Failed to add message\n");
 						}
 							
@@ -1041,7 +1041,7 @@ int mail_menu(int socket, struct user_record *user) {
 						printf("Error opening JAM base.. %s\n", conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->path);
 						break;
 					} else {
-						jam_crc = JAM_Crc32((uchar *)user->loginname, strlen(user->loginname));
+						jam_crc = JAM_Crc32((char *)user->loginname, strlen(user->loginname));
 						lastmsg = 0;
 						while (JAM_FindUser(jb, jam_crc, lastmsg, &currmsg) == 0) {
 							if (JAM_ReadMsgHeader(jb, currmsg, &jmh, &jsp) != 0) {
@@ -1148,7 +1148,7 @@ int mail_menu(int socket, struct user_record *user) {
 								s_putstring(socket, "\e[1;30m-------------------------------------------------------------------------------\e[0m\r\n");
 								body = (char *)malloc(jmh.TxtLen);
 	
-								JAM_ReadMsgText(jb, jmh.TxtOffset, jmh.TxtLen, (uchar *)body);
+								JAM_ReadMsgText(jb, jmh.TxtOffset, jmh.TxtLen, (char *)body);
 
 								JAM_CloseMB(jb);
 								
@@ -1215,19 +1215,19 @@ int mail_menu(int socket, struct user_record *user) {
 										jsf.LoID   = JAMSFLD_SENDERNAME;
 										jsf.HiID   = 0;
 										jsf.DatLen = strlen(from);
-										jsf.Buffer = (uchar *)from;
+										jsf.Buffer = (char *)from;
 										JAM_PutSubfield(jsp, &jsf);
 
 										jsf.LoID   = JAMSFLD_RECVRNAME;
 										jsf.HiID   = 0;
 										jsf.DatLen = strlen(to);
-										jsf.Buffer = (uchar *)to;
+										jsf.Buffer = (char *)to;
 										JAM_PutSubfield(jsp, &jsf);
 													
 										jsf.LoID   = JAMSFLD_SUBJECT;
 										jsf.HiID   = 0;
 										jsf.DatLen = strlen(subject);
-										jsf.Buffer = (uchar *)subject;
+										jsf.Buffer = (char *)subject;
 										JAM_PutSubfield(jsp, &jsf);
 													
 										free(body);
@@ -1252,7 +1252,7 @@ int mail_menu(int socket, struct user_record *user) {
 											break;
 										}
 										
-										if (JAM_AddMessage(jb, &jmh, jsp, (uchar *)replybody, strlen(replybody))) {
+										if (JAM_AddMessage(jb, &jmh, jsp, (char *)replybody, strlen(replybody))) {
 											printf("Failed to add message\n");
 										}
 														
@@ -1321,8 +1321,8 @@ int mail_getemailcount(struct user_record *user) {
 	s_JamMsgHeader jmh;
 	s_JamSubPacket* jsp;
 	s_JamSubfield jsf;
-	ulong jam_crc;
-	ulong lastmsg, currmsg;
+	uint32_t jam_crc;
+	uint32_t lastmsg, currmsg;
 	
 	int msg_count = 0;
 	
@@ -1330,7 +1330,7 @@ int mail_getemailcount(struct user_record *user) {
 	if (!jb) {
 		printf("Error opening JAM base.. %s\n", conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->path);
 	} else {
-		jam_crc = JAM_Crc32((uchar *)user->loginname, strlen(user->loginname));
+		jam_crc = JAM_Crc32((char *)user->loginname, strlen(user->loginname));
 		lastmsg = 0;
 		while (JAM_FindUser(jb, jam_crc, lastmsg, &currmsg) == 0) {
 			if (JAM_ReadMsgHeader(jb, currmsg, &jmh, &jsp) != 0) {
