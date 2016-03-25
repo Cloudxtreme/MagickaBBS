@@ -723,6 +723,18 @@ void runbbs(int socket, char *config_path) {
 	
 	display_last10_callers(socket, user, 1);
 	
+	// check email
+	i = mail_getemailcount(user);
+	if (i > 0) {
+		sprintf(buffer, "\r\nYou have %d e-mail(s) in your inbox.\r\n", i);
+		s_putstring(socket, buffer);
+	} else {
+		s_putstring(socket, "\r\nYou have no e-mail.\r\n");
+	}
+	sprintf(buffer, "\r\nPress any key to continue...\r\n");
+	s_putstring(socket, buffer);
+	s_getc(socket);
+	
 	// main menu
 	main_menu(socket, user);
 	

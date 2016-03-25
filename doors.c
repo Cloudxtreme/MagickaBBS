@@ -75,8 +75,14 @@ int door_menu(int socket, struct user_record *user) {
 				dodoors = 1;
 				break;
 			case 'g':
-				doquit = 1;
-				dodoors = 1;
+				{	
+					s_putstring(socket, "\r\nAre you sure you want to log off? (Y/N)");
+					c = s_getc(socket);
+					if (tolower(c) == 'y') {
+						doquit = 1;
+						dodoors = 1;
+					}
+				}
 				break;
 			default:
 				{
