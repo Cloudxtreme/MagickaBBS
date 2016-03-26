@@ -84,7 +84,7 @@ int inst_user(struct user_record *user) {
 	int rc;
     char *create_sql = "CREATE TABLE IF NOT EXISTS users ("
 						"Id INTEGER PRIMARY KEY,"
-						"loginname TEXT,"
+						"loginname TEXT COLLATE NOCASE,"
 						"password TEXT,"
 						"firstname TEXT,"
 						"lastname TEXT,"
