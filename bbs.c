@@ -670,7 +670,7 @@ void runbbs(int socket, char *config_path) {
 					
 				if (strcasecmp(user->loginname, buffer) == 0) {
 					fclose(nodefile);
-					s_putstring(socket, "You are already logged in.\r\n");
+					s_putstring(socket, "\r\nYou are already logged in.\r\n");
 					disconnect(socket);
 				} 
 				fclose(nodefile);

@@ -5,6 +5,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <libgen.h>
+#include <signal.h>
 #include <sys/wait.h>
 #include <sys/ioctl.h>
 #if defined(linux)
@@ -119,9 +120,7 @@ void rundoor(int socket, struct user_record *user, char *cmd, int stdio) {
 	int slave;
 	fd_set fdset;
 	int t;
-	int pipefd[2];
-	
-	
+	struct winsize ws;
 	
 	if (write_door32sys(socket, user) != 0) {
 		return;
@@ -136,7 +135,10 @@ void rundoor(int socket, struct user_record *user, char *cmd, int stdio) {
 		arguments[2] = strdup(buffer);
 		arguments[3] = NULL;
 		
-		if (openpty(&master, &slave, NULL, NULL, NULL) == 0) {
+		ws.ws_row = 24;
+		ws.ws_col = 80;
+		
+		if (openpty(&master, &slave, NULL, NULL, &ws) == 0) {
 			pid = fork();
 			if (pid < 0) {
 				return;
@@ -154,8 +156,6 @@ void rundoor(int socket, struct user_record *user, char *cmd, int stdio) {
 				
 				execvp(cmd, arguments);
 			} else {
-				pipe(pipefd);
-				
 				while(1) {
 					FD_ZERO(&fdset);
 					FD_SET(master, &fdset);
@@ -170,7 +170,6 @@ void rundoor(int socket, struct user_record *user, char *cmd, int stdio) {
 						if (FD_ISSET(socket, &fdset)) {
 							len = read(socket, &c, 1);
 							if (len == 0) {
-								// socket closed
 								close(master);
 								disconnect(socket);
 								return;
