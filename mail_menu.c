@@ -262,6 +262,9 @@ void read_message(int socket, struct user_record *user, int mailno) {
 	s_JamMsgHeader jmh;
 	s_JamSubPacket* jsp;
 	s_JamSubfield jsf;
+	s_JamLastRead jlr;
+	
+	
 	char buffer[256];
 	int z;
 	struct tm msg_date;
@@ -279,6 +282,18 @@ void read_message(int socket, struct user_record *user, int mailno) {
 		printf("Error opening JAM base.. %s\n", conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->path);
 		return;
 	}
+	
+	if (JAM_ReadLastRead(jb, user->id, &jlr) == JAM_NO_USER) {
+		jlr.UserCRC = JAM_Crc32(user->loginname, strlen(user->loginname));
+		jlr.UserID = user->id;
+		jlr.HighReadMsg = mailno;
+	}
+	
+	jlr.LastReadMsg = mailno;
+	if (jlr.HighReadMsg < mailno) {
+		jlr.HighReadMsg = mailno;
+	}
+	
 	memset(&jmh, 0, sizeof(s_JamMsgHeader));
 	z = JAM_ReadMsgHeader(jb, mailno, &jmh, &jsp);
 	if (z != 0) {
@@ -329,6 +344,7 @@ void read_message(int socket, struct user_record *user, int mailno) {
 	body = (char *)malloc(jmh.TxtLen);
 	
 	JAM_ReadMsgText(jb, jmh.TxtOffset, jmh.TxtLen, (char *)body);
+	JAM_WriteLastRead(jb, user->id, &jlr);
 
 	JAM_CloseMB(jb);
 	
@@ -544,6 +560,7 @@ int mail_menu(int socket, struct user_record *user) {
 	s_JamMsgHeader jmh;
 	s_JamSubPacket* jsp;
 	s_JamSubfield jsf;
+	s_JamLastRead jlr;
 	
 	struct tm msg_date;
 	
@@ -756,6 +773,10 @@ int mail_menu(int socket, struct user_record *user) {
 						break;
 					} else {
 						JAM_ReadMBHeader(jb, &jbh);
+						if (JAM_ReadLastRead(jb, user->id, &jlr) == JAM_NO_USER) {
+							jlr.LastReadMsg = 0;
+							jlr.HighReadMsg = 0;
+						}
 						if (jbh.ActiveMsgs > 0) {
 							sprintf(buffer, "Start at message [0-%d] ? ", jbh.ActiveMsgs - 1);
 							s_putstring(socket, buffer);
@@ -811,8 +832,11 @@ int mail_menu(int socket, struct user_record *user) {
 								}
 								
 								localtime_r((time_t *)&jmh.DateWritten, &msg_date);
-								
-								sprintf(buffer, "\e[1;30m[\e[1;34m%4d\e[1;30m] \e[1;37m%-25s \e[1;32m%-15s \e[1;33m%-15s \e[1;35m%02d:%02d %02d-%02d-%02d\e[0m\r\n", j, subject, from, to, msg_date.tm_hour, msg_date.tm_min, msg_date.tm_mday, msg_date.tm_mon + 1, msg_date.tm_year - 100);
+								if (j > jlr.HighReadMsg) {
+									sprintf(buffer, "\e[1;30m[\e[1;34m%4d\e[1;30m]\e[1;32m*\e[1;37m%-25s \e[1;32m%-15s \e[1;33m%-15s \e[1;35m%02d:%02d %02d-%02d-%02d\e[0m\r\n", j, subject, from, to, msg_date.tm_hour, msg_date.tm_min, msg_date.tm_mday, msg_date.tm_mon + 1, msg_date.tm_year - 100);
+								} else {
+									sprintf(buffer, "\e[1;30m[\e[1;34m%4d\e[1;30m] \e[1;37m%-25s \e[1;32m%-15s \e[1;33m%-15s \e[1;35m%02d:%02d %02d-%02d-%02d\e[0m\r\n", j, subject, from, to, msg_date.tm_hour, msg_date.tm_min, msg_date.tm_mday, msg_date.tm_mon + 1, msg_date.tm_year - 100);
+								}
 								s_putstring(socket, buffer);
 								JAM_DelSubPacket(jsp);
 								if (subject != NULL) {
@@ -1313,6 +1337,64 @@ int mail_menu(int socket, struct user_record *user) {
 	}
 	
 	return doquit;
+}
+
+void mail_scan(int socket, struct user_record *user) {
+	s_JamBase *jb;
+	s_JamBaseHeader jbh;
+	s_JamLastRead jlr;
+	
+	char c;
+	int i;
+	int j;
+	char buffer[256];
+	int count;
+	
+	s_putstring(socket, "\r\nScan for new mail? (Y/N) :	");
+	c = s_getc(socket);
+	
+	if (tolower(c) == 'y') {
+		for (i=0;i<conf.mail_conference_count;i++) {
+			if (conf.mail_conferences[i]->sec_level > user->sec_level) {
+				continue;
+			}
+			sprintf(buffer, "\r\n%d. %s\r\n", i, conf.mail_conferences[i]->name);
+			s_putstring(socket, buffer);
+			for (j=0;j<conf.mail_conferences[i]->mail_area_count;j++) {
+				if (conf.mail_conferences[i]->mail_areas[j]->read_sec_level > user->sec_level) {
+					continue;
+				}
+				jb = open_jam_base(conf.mail_conferences[i]->mail_areas[j]->path);
+				if (!jb) {
+					printf("Unable to open message base\n");
+					continue;
+				}
+				if (JAM_ReadMBHeader(jb, &jbh) != 0) {
+					JAM_CloseMB(jb);
+					continue;
+				}
+				if (JAM_ReadLastRead(jb, user->id, &jlr) == JAM_NO_USER) {
+					if (jbh.ActiveMsgs == 0) {
+						JAM_CloseMB(jb);
+						continue;
+					}
+					sprintf(buffer, "   --> %d. %s (%d new)\r\n", j, conf.mail_conferences[i]->mail_areas[j]->name, jbh.ActiveMsgs);
+				} else {
+					if (jlr.HighReadMsg < (jbh.ActiveMsgs - 1)) {
+						sprintf(buffer, "   --> %d. %s (%d new)\r\n", j, conf.mail_conferences[i]->mail_areas[j]->name, (jbh.ActiveMsgs - 1) - jlr.HighReadMsg);
+					} else {
+						JAM_CloseMB(jb);
+						continue;
+					}
+				}
+				s_putstring(socket, buffer);
+				JAM_CloseMB(jb);
+			}
+		}
+		sprintf(buffer, "\r\nPress any key to continue...\r\n");
+		s_putstring(socket, buffer);
+		s_getc(socket);
+	}
 }
 
 int mail_getemailcount(struct user_record *user) {

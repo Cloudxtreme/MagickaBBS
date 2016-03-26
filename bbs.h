@@ -130,6 +130,7 @@ extern void list_users(int socket, struct user_record *user);
 
 extern void main_menu(int socket, struct user_record *user);
 
+extern void mail_scan(int socket, struct user_record *user);
 extern int mail_getemailcount(struct user_record *user);
 extern int mail_menu(int socket, struct user_record *user);
 

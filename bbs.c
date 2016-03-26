@@ -533,8 +533,6 @@ void display_info(int socket) {
 	s_putstring(socket, buffer);
 	sprintf(buffer, "\e[1;32mSystem      : \e[1;37m%s (%s)\r\n", name.sysname, name.machine);
 	s_putstring(socket, buffer);
-	sprintf(buffer, "\e[1;32mMail Waiting: \e[1;37m%d\r\n", mailwaiting);
-	s_putstring(socket, buffer);
 	sprintf(buffer, "\e[1;30m----------------------------------------------\e[0m\r\n");
 	s_putstring(socket, buffer);
 	
@@ -731,9 +729,8 @@ void runbbs(int socket, char *config_path) {
 	} else {
 		s_putstring(socket, "\r\nYou have no e-mail.\r\n");
 	}
-	sprintf(buffer, "\r\nPress any key to continue...\r\n");
-	s_putstring(socket, buffer);
-	s_getc(socket);
+	
+	mail_scan(socket, user);
 	
 	// main menu
 	main_menu(socket, user);
