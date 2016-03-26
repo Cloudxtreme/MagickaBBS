@@ -287,7 +287,13 @@ static int handler(void* user, const char* section, const char* name,
 			conf->nodes = atoi(value);
 		} else if (strcasecmp(name, "new user level") == 0) {
 			conf->newuserlvl = atoi(value);
-		}
+		} else if (strcasecmp(name, "irc server") == 0) {
+			conf->irc_server = strdup(value);
+		} else if (strcasecmp(name, "irc port") == 0) {
+			conf->irc_port = atoi(value);
+		} else if (strcasecmp(name, "irc channel") == 0) {
+			conf->irc_channel = strdup(value);
+		} 
 	} else if (strcasecmp(section, "paths") == 0){
 		if (strcasecmp(name, "ansi path") == 0) {
 			conf->ansi_path = strdup(value);
@@ -569,6 +575,8 @@ void runbbs(int socket, char *config_path) {
 	conf.mail_conference_count = 0;
 	conf.door_count = 0;
 	conf.file_directory_count = 0;
+	conf.irc_server = NULL;
+	conf.irc_port = 6667;
 	
 	// Load BBS data
 	if (ini_parse(config_path, handler, &conf) <0) {

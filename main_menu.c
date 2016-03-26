@@ -17,12 +17,17 @@ void main_menu(int socket, struct user_record *user) {
 		s_displayansi(socket, "mainmenu");
 		
 		
-		sprintf(prompt, "\r\nTL: %dm :> ", user->timeleft);
+		sprintf(prompt, "\r\n\e[0mTL: %dm :> ", user->timeleft);
 		s_putstring(socket, prompt);
 		
 		c = s_getc(socket);
 		
 		switch(tolower(c)) {
+			case 'c':
+				{
+					chat_system(socket, user);
+				}
+				break;
 			case 'l':
 				{
 					bbs_list(socket, user);

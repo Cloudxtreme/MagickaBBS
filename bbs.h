@@ -76,6 +76,10 @@ struct bbs_config {
 	char *bbs_path;
 	char *email_path;
 	
+	char *irc_server;
+	int irc_port;
+	char *irc_channel;
+	
 	int nodes;
 	int newuserlvl;
 	int mail_conference_count;
@@ -137,4 +141,6 @@ extern int mail_menu(int socket, struct user_record *user);
 extern int door_menu(int socket, struct user_record *user);
 
 extern void bbs_list(int socket, struct user_record *user);
+
+extern void chat_system(int sock, struct user_record *user);
 #endif

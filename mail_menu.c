@@ -582,7 +582,7 @@ int mail_menu(int socket, struct user_record *user) {
 		s_displayansi(socket, "mailmenu");
 		
 		
-		sprintf(prompt, "\r\nConf: (%d) %s\r\nArea: (%d) %s\r\nTL: %dm :> ", user->cur_mail_conf, conf.mail_conferences[user->cur_mail_conf]->name, user->cur_mail_area, conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->name, user->timeleft);
+		sprintf(prompt, "\e[0m\r\nConf: (%d) %s\r\nArea: (%d) %s\r\nTL: %dm :> ", user->cur_mail_conf, conf.mail_conferences[user->cur_mail_conf]->name, user->cur_mail_area, conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->name, user->timeleft);
 		s_putstring(socket, prompt);
 		
 		c = s_getc(socket);
