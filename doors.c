@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <libgen.h>
 #include <sys/wait.h>
+#include <sys/ioctl.h>
 #if defined(linux)
 #  include <pty.h>
 #else
@@ -118,6 +119,9 @@ void rundoor(int socket, struct user_record *user, char *cmd, int stdio) {
 	int slave;
 	fd_set fdset;
 	int t;
+	int pipefd[2];
+	
+	
 	
 	if (write_door32sys(socket, user) != 0) {
 		return;
@@ -137,10 +141,21 @@ void rundoor(int socket, struct user_record *user, char *cmd, int stdio) {
 			if (pid < 0) {
 				return;
 			} else if (pid == 0) {
+				
+				close(master);
 				dup2(slave, 0);
 				dup2(slave, 1);
+				
+				close(slave);
+				
+				setsid();
+				
+				ioctl(0, TIOCSCTTY, 1);
+				
 				execvp(cmd, arguments);
 			} else {
+				pipe(pipefd);
+				
 				while(1) {
 					FD_ZERO(&fdset);
 					FD_SET(master, &fdset);
