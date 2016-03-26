@@ -8,7 +8,7 @@ OBJ = inih/ini.o bbs.o main.o users.o main_menu.o mail_menu.o doors.o bbs_list.o
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 magicka: $(OBJ) 
-	$(CC) -o magicka -o $@ $^ $(CFLAGS) -L/usr/local/lib -lsqlite3 $(JAMLIB)
+	$(CC) -o magicka -o $@ $^ $(CFLAGS) -L/usr/local/lib -lsqlite3 $(JAMLIB) -lutil
 	
 .PHONY: clean
 

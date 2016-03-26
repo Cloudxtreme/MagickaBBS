@@ -6,6 +6,11 @@
 #include <unistd.h>
 #include <libgen.h>
 #include <sys/wait.h>
+#if defined(linux)
+#  include <pty.h>
+#else
+#  include <libutil.h>
+#endif
 #include "bbs.h"
 
 extern struct bbs_config conf;
@@ -109,6 +114,10 @@ void rundoor(int socket, struct user_record *user, char *cmd, int stdio) {
 	char c;
 	int len;
 	int status;
+	int master;
+	int slave;
+	fd_set fdset;
+	int t;
 	
 	if (write_door32sys(socket, user) != 0) {
 		return;
@@ -116,24 +125,57 @@ void rundoor(int socket, struct user_record *user, char *cmd, int stdio) {
 	
 	if (stdio) {
 		
-		arguments[0] = strdup(basename(cmd));
+		arguments[0] = strdup(cmd);
 		sprintf(buffer, "%d", mynode);
 		arguments[1] = strdup(buffer);
 		sprintf(buffer, "%d", socket);
 		arguments[2] = strdup(buffer);
 		arguments[3] = NULL;
 		
-		pid = fork();
-		if (pid < 0) {
-			return;
-		} else if (pid == 0) {
-			// forked process
-			dup2(socket, 0);
-			dup2(socket, 1);
-			execvp(cmd, arguments);
-		} else {
-			waitpid(pid, &status, 0);
+		if (openpty(&master, &slave, NULL, NULL, NULL) == 0) {
+			pid = fork();
+			if (pid < 0) {
+				return;
+			} else if (pid == 0) {
+				dup2(slave, 0);
+				dup2(slave, 1);
+				execvp(cmd, arguments);
+			} else {
+				while(1) {
+					FD_ZERO(&fdset);
+					FD_SET(master, &fdset);
+					FD_SET(socket, &fdset);
+					if (master > socket) {
+						t = master + 1;
+					} else {
+						t = socket + 1;
+					}
+					ret = select(t, &fdset, NULL, NULL, NULL);
+					if (ret > 0) {
+						if (FD_ISSET(socket, &fdset)) {
+							len = read(socket, &c, 1);
+							if (len == 0) {
+								// socket closed
+								close(master);
+								disconnect(socket);
+								return;
+							}
+							write(master, &c, 1);
+						} else if (FD_ISSET(master, &fdset)) {
+							len = read(master, &c, 1);
+							if (len == 0) {
+								close(master);
+								break;
+							}
+							write(socket, &c, 1);
+						}
+					}
+				}
+			}
 		}
+		free(arguments[0]);
+		free(arguments[1]);
+		free(arguments[2]);
 	} else {
 		sprintf(buffer, "%s %d %d", cmd, mynode, socket);
 		system(buffer);
