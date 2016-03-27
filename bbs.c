@@ -213,7 +213,7 @@ static int mail_area_handler(void* user, const char* section, const char* name,
 			} else {
 				mc->realnames = 0;
 			}
-		} else if (strcasecmp(name, "tagline")) {
+		} else if (strcasecmp(name, "tagline") == 0) {
 			mc->tagline = strdup(value);
 		}
 	} else if (strcasecmp(section, "network") == 0) {
