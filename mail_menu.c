@@ -1333,6 +1333,60 @@ int mail_menu(int socket, struct user_record *user) {
 					}
 				}
 				break;
+			case '}':
+				{
+					for (i=user->cur_mail_conf;i<conf.mail_conference_count;i++) {
+						if (i + 1 == conf.mail_conference_count) {
+							i = -1;
+						}
+						if (conf.mail_conferences[i+1]->sec_level <= user->sec_level) {
+							user->cur_mail_conf = i + 1;
+							user->cur_mail_area = 0;
+							break;
+						}
+					}
+				}
+				break;
+			case '{':
+				{
+					for (i=user->cur_mail_conf;i>=0;i--) {
+						if (i - 1 == -1) {
+							i = conf.mail_conference_count;
+						}
+						if (conf.mail_conferences[i-1]->sec_level <= user->sec_level) {
+							user->cur_mail_conf = i - 1;
+							user->cur_mail_area = 0;
+							break;
+						}
+					}
+				}
+				break;
+			case ']':
+				{
+					for (i=user->cur_mail_area;i<conf.mail_conferences[user->cur_mail_conf]->mail_area_count;i++) {
+						if (i + 1 == conf.mail_conferences[user->cur_mail_conf]->mail_area_count) {
+							i = -1;
+						}
+						if (conf.mail_conferences[user->cur_mail_conf]->mail_areas[i+1]->read_sec_level <= user->sec_level) {
+							user->cur_mail_area = i + 1;
+							break;
+						}
+					}
+				}
+				break;
+			case '[':
+				{
+					for (i=user->cur_mail_area;i>=0;i--) {
+						if (i - 1 == -1) {
+							i = conf.mail_conferences[user->cur_mail_conf]->mail_area_count;
+						}
+						if (conf.mail_conferences[user->cur_mail_conf]->mail_areas[i-1]->read_sec_level <= user->sec_level) {
+							user->cur_mail_area = i - 1;
+							break;
+						}
+					}
+				}
+				break;				
 		}
 	}
 	
