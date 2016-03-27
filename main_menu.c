@@ -42,9 +42,11 @@ void main_menu(int socket, struct user_record *user) {
 							if (tolower(buffer[0]) != 'q') {
 								i = atoi(buffer);
 								if (i >= 0 && i < conf.text_file_count) {
+									s_putstring(socket, "\r\n");
 									s_displayansi_p(socket, conf.text_files[i]->path);
-									s_putstring(socket, "Press any key to continue...\r\n");
+									s_putstring(socket, "Press any key to continue...");
 									s_getc(socket);
+									s_putstring(socket, "\r\n");
 								}
 							} else {
 								break;
