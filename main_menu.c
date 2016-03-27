@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <ctype.h>
 #include <sys/stat.h>
 #include "bbs.h"
@@ -23,6 +24,39 @@ void main_menu(int socket, struct user_record *user) {
 		c = s_getc(socket);
 		
 		switch(tolower(c)) {
+			case 'a':
+				{
+					if (conf.text_file_count > 0) {
+						
+						while(1) {
+							s_putstring(socket, "\r\n\e[1;32mText Files Collection\r\n");
+							s_putstring(socket, "\e[1;30m-------------------------------------------------------------------------------\e[0m\r\n");
+							
+							for (i=0;i<conf.text_file_count;i++) {
+								sprintf(buffer, "\e[1;30m[\e[1;34m%3d\e[1;30m] \e[1;37m%s\r\n", i, conf.text_files[i]->name);
+								s_putstring(socket, buffer);
+							}
+							s_putstring(socket, "\e[1;30m-------------------------------------------------------------------------------\e[0m\r\n");
+							s_putstring(socket, "Enter the number of a text file to display or Q to quit: ");
+							s_readstring(socket, buffer, 4);
+							if (tolower(buffer[0]) != 'q') {
+								i = atoi(buffer);
+								if (i >= 0 && i < conf.text_file_count) {
+									s_displayansi_p(socket, conf.text_files[i]->path);
+									s_putstring(socket, "Press any key to continue...\r\n");
+									s_getc(socket);
+								}
+							} else {
+								break;
+							}
+						}
+					} else {
+						s_putstring(socket, "\r\nSorry, there are no text files to display\r\n");
+						s_putstring(socket, "Press any key to continue...\r\n");
+						s_getc(socket);
+					}
+				}
+				break;
 			case 'c':
 				{
 					chat_system(socket, user);

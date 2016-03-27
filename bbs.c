@@ -326,6 +326,18 @@ static int handler(void* user, const char* section, const char* name,
 		conf->file_directories[conf->file_directory_count]->path = strdup(value);
 		conf->file_directories[conf->file_directory_count]->file_sub_count = 0;
 		conf->file_directory_count++;
+	} else if (strcasecmp(section, "text files") == 0) {
+		if (conf->text_file_count == 0) {
+			conf->text_files = (struct text_file **)malloc(sizeof(struct text_file *));
+		} else {
+			conf->text_files = (struct text_file **)realloc(conf->text_files, sizeof(struct text_file *) * (conf->text_file_count + 1));
+		}
+		
+		conf->text_files[conf->text_file_count] = (struct text_file *)malloc(sizeof(struct text_file));
+		conf->text_files[conf->text_file_count]->name = strdup(name);
+		conf->text_files[conf->text_file_count]->path = strdup(value);
+		conf->text_file_count++;
+		
 	}
 	
 	return 1;
@@ -338,6 +350,23 @@ void s_putchar(int socket, char c) {
 void s_putstring(int socket, char *c) {
 	write(socket, c, strlen(c));
 }
+
+void s_displayansi_p(int socket, char *file) {
+	FILE *fptr;
+	char c;
+	
+	fptr = fopen(file, "r");
+	if (!fptr) {
+		return;
+	}
+	c = fgetc(fptr);
+	while (!feof(fptr)) {
+		s_putchar(socket, c);
+		c = fgetc(fptr);
+	}
+	fclose(fptr);
+}
+
 
 void s_displayansi(int socket, char *file) {
 	FILE *fptr;
@@ -577,6 +606,7 @@ void runbbs(int socket, char *config_path) {
 	conf.file_directory_count = 0;
 	conf.irc_server = NULL;
 	conf.irc_port = 6667;
+	conf.text_file_count = 0;
 	
 	// Load BBS data
 	if (ini_parse(config_path, handler, &conf) <0) {

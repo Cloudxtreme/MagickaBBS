@@ -26,6 +26,11 @@ struct last10_callers {
 	time_t time;
 }__attribute__((packed));
 
+struct text_file {
+	char *name;
+	char *path;
+};
+
 struct door_config {
 	char *name;
 	char key;
@@ -88,6 +93,8 @@ struct bbs_config {
 	struct door_config **doors;
 	int file_directory_count;
 	struct file_directory **file_directories;
+	int text_file_count;
+	struct text_file **text_files;
 };
 
 struct sec_level_t {
@@ -118,6 +125,7 @@ extern void runbbs(int sock, char *config);
 extern struct fido_addr *parse_fido_addr(const char *str);
 extern void s_putchar(int socket, char c);
 extern void s_putstring(int socket, char *c);
+extern void s_displayansi_p(int socket, char *file);
 extern void s_displayansi(int socket, char *file);
 extern char s_getchar(int socket);
 extern void s_readstring(int socket, char *buffer, int max);
