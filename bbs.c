@@ -199,15 +199,15 @@ static int mail_area_handler(void* user, const char* section, const char* name,
 	int i;
 	
 	if (strcasecmp(section, "main") == 0) {
-		if (strcasecmp(name, "visible sec level")) {
+		if (strcasecmp(name, "visible sec level") == 0) {
 			mc->sec_level = atoi(value);
-		} else if (strcasecmp(name, "networked")) {
+		} else if (strcasecmp(name, "networked") == 0) {
 			if (strcasecmp(value, "true") == 0) {
 				mc->networked = 1;
 			} else {
 				mc->networked = 0;
 			}
-		} else if (strcasecmp(name, "real names")) {
+		} else if (strcasecmp(name, "real names") == 0) {
 			if (strcasecmp(value, "true") == 0) {
 				mc->realnames = 1;
 			} else {
@@ -215,7 +215,7 @@ static int mail_area_handler(void* user, const char* section, const char* name,
 			}
 		} else if (strcasecmp(name, "tagline") == 0) {
 			mc->tagline = strdup(value);
-		}
+		} 
 	} else if (strcasecmp(section, "network") == 0) {
 		if (strcasecmp(name, "type") == 0) {
 			if (strcasecmp(value, "fido") == 0) {
