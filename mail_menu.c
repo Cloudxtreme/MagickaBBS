@@ -28,7 +28,7 @@ s_JamBase *open_jam_base(char *path) {
 	return jb;
 }
 
-char *editor(int socket, char *quote, char *from) {
+char *editor(int socket, struct user_record *user, char *quote, char *from) {
 	int lines = 0;
 	char buffer[256];
 	char linebuffer[80];
@@ -43,6 +43,7 @@ char *editor(int socket, char *quote, char *from) {
 	int lineat=0;
 	int qfrom,qto;
 	int z;
+	char *tagline;
 	
 	if (quote != NULL) {
 		for (i=0;i<strlen(quote);i++) {
@@ -78,6 +79,16 @@ char *editor(int socket, char *quote, char *from) {
 					size += strlen(content[i]) + 1;
 				}
 				size ++;
+				
+				if (conf.mail_conferences[user->cur_mail_conf]->tagline != NULL) {
+					tagline = conf.mail_conferences[user->cur_mail_conf]->tagline;
+				} else {
+					tagline = conf.default_tagline;
+				}
+				
+				size += 7;
+				size += strlen(tagline);
+				
 				msg = (char *)malloc(size);
 				memset(msg, 0, size);
 				for (i=0;i<lines;i++) {
@@ -85,6 +96,10 @@ char *editor(int socket, char *quote, char *from) {
 					strcat(msg, "\r");
 					free(content[i]);
 				}
+				strcat(msg, "\r---\r");
+				strcat(msg, tagline);
+				strcat(msg, "\r");
+				
 				free(content);
 				if (quote != NULL) {
 					for (i=0;i<quotelines;i++) {
@@ -392,7 +407,7 @@ void read_message(int socket, struct user_record *user, int mailno) {
 			}
 			to = (char *)malloc(strlen(buffer) + 1);
 			strcpy(to, buffer);
-			replybody = editor(socket, body, to);
+			replybody = editor(socket, user, body, to);
 			if (replybody != NULL) {
 				jb = open_jam_base(conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->path);
 				if (!jb) {
@@ -624,7 +639,7 @@ int mail_menu(int socket, struct user_record *user) {
 					subject = strdup(buffer);
 					
 					// post a message
-					msg = editor(socket, NULL, NULL);
+					msg = editor(socket, user, NULL, NULL);
 					
 					if (msg != NULL) {
 						jb = open_jam_base(conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->path);
@@ -980,7 +995,7 @@ int mail_menu(int socket, struct user_record *user) {
 					subject = strdup(buffer);
 					
 					// post a message
-					msg = editor(socket, NULL, NULL);
+					msg = editor(socket, user, NULL, NULL);
 					
 					if (msg != NULL) {
 						jb = open_jam_base(conf.email_path);
@@ -1217,7 +1232,7 @@ int mail_menu(int socket, struct user_record *user) {
 									to = (char *)malloc(strlen(buffer) + 1);
 									strcpy(to, buffer);
 									
-									replybody = editor(socket, body, to);
+									replybody = editor(socket, user, body, to);
 									
 									if (replybody != NULL) {
 										jb = open_jam_base(conf.email_path);

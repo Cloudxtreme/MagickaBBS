@@ -49,6 +49,7 @@ struct mail_area {
 struct mail_conference {
 	char *name;
 	char *path;
+	char *tagline;
 	int networked;
 	int nettype;
 	int realnames;
@@ -80,6 +81,7 @@ struct bbs_config {
 	char *ansi_path;
 	char *bbs_path;
 	char *email_path;
+	char *default_tagline;
 	
 	char *irc_server;
 	int irc_port;

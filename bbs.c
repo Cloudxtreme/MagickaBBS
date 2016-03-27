@@ -213,6 +213,8 @@ static int mail_area_handler(void* user, const char* section, const char* name,
 			} else {
 				mc->realnames = 0;
 			}
+		} else if (strcasecmp(name, "tagline")) {
+			mc->tagline = strdup(value);
 		}
 	} else if (strcasecmp(section, "network") == 0) {
 		if (strcasecmp(name, "type") == 0) {
@@ -293,7 +295,9 @@ static int handler(void* user, const char* section, const char* name,
 			conf->irc_port = atoi(value);
 		} else if (strcasecmp(name, "irc channel") == 0) {
 			conf->irc_channel = strdup(value);
-		} 
+		} else if (strcasecmp(name, "default tagline") == 0) {
+			conf->default_tagline = strdup(value);
+		}
 	} else if (strcasecmp(section, "paths") == 0){
 		if (strcasecmp(name, "ansi path") == 0) {
 			conf->ansi_path = strdup(value);
@@ -312,6 +316,7 @@ static int handler(void* user, const char* section, const char* name,
 		conf->mail_conferences[conf->mail_conference_count] = (struct mail_conference *)malloc(sizeof(struct mail_conference));
 		conf->mail_conferences[conf->mail_conference_count]->name = strdup(name);
 		conf->mail_conferences[conf->mail_conference_count]->path = strdup(value);
+		conf->mail_conferences[conf->mail_conference_count]->tagline = NULL;
 		conf->mail_conferences[conf->mail_conference_count]->mail_area_count = 0;
 		conf->mail_conference_count++;
 	} else if (strcasecmp(section, "file directories") == 0) {
