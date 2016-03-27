@@ -3,20 +3,43 @@
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/wait.h>
+#include <signal.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <errno.h>
 #include "bbs.h"
+
+void sigchld_handler(int s)
+{
+    // waitpid() might overwrite errno, so we save and restore it:
+    int saved_errno = errno;
+
+    while(waitpid(-1, NULL, WNOHANG) > 0);
+
+    errno = saved_errno;
+}
+
 
 int main(int argc, char **argv) {
 	int socket_desc, client_sock, c, *new_sock;
 	int pid;
 	struct sockaddr_in server, client;
 	int port;
-	
+	struct sigaction sa;
+	    
 	if (argc < 3) {
 		printf("Usage ./magicka config/bbs.ini port\n");
 		exit(1);
 	}
+	
+	sa.sa_handler = sigchld_handler; // reap all dead processes
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = SA_RESTART;
+    if (sigaction(SIGCHLD, &sa, NULL) == -1) {
+        perror("sigaction");
+        exit(1);
+    }
 	
 	socket_desc = socket(AF_INET, SOCK_STREAM, 0);
 	if (socket_desc == -1) {
