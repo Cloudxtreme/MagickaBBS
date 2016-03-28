@@ -414,7 +414,7 @@ void read_message(int socket, struct user_record *user, int mailno) {
 	buffer[strlen(buffer) - 1] = '\0';
 	strcat(buffer, "\r\n");
 	s_putstring(socket, buffer);
-	sprintf(buffer, "\e[1;32mAttribs  : \e[1;37m%s\r\n", (jmh.Attribute & MSG_SENT ? "SENT" : ""));
+	sprintf(buffer, "\e[1;32mAttribs : \e[1;37m%s\r\n", (jmh.Attribute & MSG_SENT ? "SENT" : ""));
 	s_putstring(socket, buffer);
 	s_putstring(socket, "\e[1;30m-------------------------------------------------------------------------------\e[0m\r\n");
 
@@ -546,7 +546,6 @@ void read_message(int socket, struct user_record *user, int mailno) {
 					}
 				} else if (conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->type == TYPE_NETMAIL_AREA) {
 					jmh.Attribute |= MSG_TYPENET;
-					jmh.Attribute |= MSG_KILLSENT;
 					jmh.Attribute |= MSG_PRIVATE;
 					
 					if (conf.mail_conferences[user->cur_mail_conf]->nettype == NETWORK_FIDO) {
@@ -818,7 +817,6 @@ int mail_menu(int socket, struct user_record *user) {
 						} else
 						if (conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->type == TYPE_NETMAIL_AREA) {
 							jmh.Attribute |= MSG_TYPENET;
-							jmh.Attribute |= MSG_KILLSENT;
 							jmh.Attribute |= MSG_PRIVATE;
 							if (conf.mail_conferences[user->cur_mail_conf]->nettype == NETWORK_FIDO) {
 								if (conf.mail_conferences[user->cur_mail_conf]->fidoaddr->point) {
