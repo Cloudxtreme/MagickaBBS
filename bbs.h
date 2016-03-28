@@ -7,7 +7,8 @@
 #define VERSION_MINOR 1
 #define VERSION_STR "dev"
 
-#define NETWORK_FIDO 0
+#define NETWORK_FIDO 1
+#define NETWORK_WWIV 2
 
 #define TYPE_LOCAL_AREA    0
 #define TYPE_NETMAIL_AREA  1
@@ -57,6 +58,7 @@ struct mail_conference {
 	int mail_area_count;
 	struct mail_area **mail_areas;
 	struct fido_addr *fidoaddr;
+	int wwivnode;
 };
 
 struct file_sub {

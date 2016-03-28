@@ -396,17 +396,32 @@ void read_message(int socket, struct user_record *user, int mailno) {
 				free(from);
 			}
 			if (conf.mail_conferences[user->cur_mail_conf]->realnames == 0) {
-				from = (char *)malloc(strlen(user->loginname) + 1);
-				strcpy(from, user->loginname);
+				if (conf.mail_conferences[user->cur_mail_conf]->nettype == NETWORK_WWIV) {
+					from = (char *)malloc(strlen(user->loginname) + 20);
+					sprintf(from, "%s #%d @%d", user->loginname, user->id, conf.mail_conferences[user->cur_mail_conf]->wwivnode);
+				} else {
+					from = (char *)malloc(strlen(user->loginname) + 1);
+					strcpy(from, user->loginname);
+				}
 			} else {
-				from = (char *)malloc(strlen(user->firstname) + strlen(user->lastname) + 2);
-				sprintf(from, "%s %s", user->firstname, user->lastname);
+				if (conf.mail_conferences[user->cur_mail_conf]->nettype == NETWORK_WWIV) {
+					from = (char *)malloc(strlen(user->loginname) + 23 + strlen(user->firstname));
+					sprintf(from, "%s #%d @%d (%s)", user->loginname, user->id, conf.mail_conferences[user->cur_mail_conf]->wwivnode, user->firstname);
+				} else {				
+					from = (char *)malloc(strlen(user->firstname) + strlen(user->lastname) + 2);
+					sprintf(from, "%s %s", user->firstname, user->lastname);
+				}
 			}
 			if (to != NULL) {
 				free(to);
 			}
-			to = (char *)malloc(strlen(buffer) + 1);
-			strcpy(to, buffer);
+			if (conf.mail_conferences[user->cur_mail_conf]->nettype == NETWORK_WWIV && conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->type == TYPE_ECHOMAIL_AREA) {
+				to = (char *)malloc(4);
+				strcpy(to, "ALL");
+			} else {
+				to = (char *)malloc(strlen(buffer) + 1);
+				strcpy(to, buffer);
+			}
 			replybody = editor(socket, user, body, to);
 			if (replybody != NULL) {
 				jb = open_jam_base(conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->path);
@@ -609,9 +624,12 @@ int mail_menu(int socket, struct user_record *user) {
 						s_putstring(socket, "\r\nSorry, you are not allowed to post in this area\r\n");
 						break;
 					}
-					s_putstring(socket, "\r\nTO: ");
-					s_readstring(socket, buffer, 16);
-					
+					if (conf.mail_conferences[user->cur_mail_conf]->nettype == NETWORK_WWIV && conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->type  == TYPE_ECHOMAIL_AREA) {
+						sprintf(buffer, "ALL");
+					} else {
+						s_putstring(socket, "\r\nTO: ");
+						s_readstring(socket, buffer, 16);
+					}
 					if (strlen(buffer) == 0) {
 						strcpy(buffer, "ALL");
 					}
@@ -655,9 +673,17 @@ int mail_menu(int socket, struct user_record *user) {
 						jmh.DateWritten = (uint32_t)time(NULL);
 						jmh.Attribute |= MSG_LOCAL;
 						if (conf.mail_conferences[user->cur_mail_conf]->realnames == 0) {
-							strcpy(buffer, user->loginname);
+							if (conf.mail_conferences[user->cur_mail_conf]->nettype == NETWORK_WWIV) {
+								sprintf(buffer, "%s #%d @%d", user->loginname, user->id, conf.mail_conferences[user->cur_mail_conf]->wwivnode);
+							} else {
+								strcpy(buffer, user->loginname);
+							}
 						} else {
-							sprintf(buffer, "%s %s", user->firstname, user->lastname);
+							if (conf.mail_conferences[user->cur_mail_conf]->nettype == NETWORK_WWIV) {
+								sprintf(buffer, "%s #%d @%d (%s)", user->loginname, user->id, conf.mail_conferences[user->cur_mail_conf]->wwivnode, user->firstname);
+							} else {				
+								sprintf(from, "%s %s", user->firstname, user->lastname);
+							}
 						}
 						
 						jsp = JAM_NewSubPacket();

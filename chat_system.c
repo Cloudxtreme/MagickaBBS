@@ -134,7 +134,7 @@ void chat_system(int sock, struct user_record *user) {
     }
     if (inet_pton(AF_INET, conf.irc_server, &servaddr.sin_addr) != 0) {
         hostname_to_ip(conf.irc_server, buffer);
-        if (!inet_pton(AF_INET, conf.irc_server, &servaddr.sin_addr)) {
+        if (!inet_pton(AF_INET, buffer, &servaddr.sin_addr)) {
 			return;
 		}
     }

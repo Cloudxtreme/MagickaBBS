@@ -220,9 +220,13 @@ static int mail_area_handler(void* user, const char* section, const char* name,
 		if (strcasecmp(name, "type") == 0) {
 			if (strcasecmp(value, "fido") == 0) {
 				mc->nettype = NETWORK_FIDO;
+			} else if (strcasecmp(value, "wwiv") == 0) {
+				mc->nettype = NETWORK_WWIV;
 			}
 		} else if (strcasecmp(name, "fido node") == 0) {
 			mc->fidoaddr = parse_fido_addr(value);
+		} else if (strcasecmp(name, "wwiv node") == 0) {
+			mc->wwivnode = atoi(value);
 		}
 	} else {
 		// check if it's partially filled in
@@ -318,6 +322,7 @@ static int handler(void* user, const char* section, const char* name,
 		conf->mail_conferences[conf->mail_conference_count]->path = strdup(value);
 		conf->mail_conferences[conf->mail_conference_count]->tagline = NULL;
 		conf->mail_conferences[conf->mail_conference_count]->mail_area_count = 0;
+		conf->mail_conferences[conf->mail_conference_count]->nettype = 0;
 		conf->mail_conference_count++;
 	} else if (strcasecmp(section, "file directories") == 0) {
 		if (conf->file_directory_count == 0) {
