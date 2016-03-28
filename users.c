@@ -348,6 +348,7 @@ struct user_record *new_user(int socket) {
 	char c;
 	int nameok = 0;
 	int passok = 0;
+	int i;
 	
 	user = (struct user_record *)malloc(sizeof(struct user_record));
 	s_putstring(socket, "\r\n\r\n");
@@ -365,11 +366,17 @@ struct user_record *new_user(int socket) {
 				continue;
 			}
 			
-			if (strchr(buffer, '%') != NULL) {
-				s_putstring(socket, "Sorry, invalid character.\r\n");
-				continue;				
+			for (i=0;i<strlen(buffer);i++) {
+				if (!(tolower(buffer[i]) >= 97 && tolower(buffer[i]) <= 122)) {
+					s_putstring(socket, "Sorry, invalid character, can only use alpha characters.\r\n");
+					nameok = 1;
+					break;			
+				}
 			}
-		
+			if (nameok == 1) {
+				nameok = 0;
+				continue;
+			}
 			if (strcasecmp(buffer, "unknown") == 0) {
 				s_putstring(socket, "Sorry, that name is reserved.\r\n");
 				continue;				
