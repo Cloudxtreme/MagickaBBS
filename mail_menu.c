@@ -292,6 +292,13 @@ void read_message(int socket, struct user_record *user, int mailno) {
 	char c;
 	char *replybody;
 	struct fido_addr *from_addr = NULL;
+	struct fido_addr *dest;
+	int wwiv_to = 0;
+	int i;
+	char *wwiv_addressee;
+	char *dest_addr;
+	int to_us;
+	
 	jb = open_jam_base(conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->path);
 	if (!jb) {
 		printf("Error opening JAM base.. %s\n", conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->path);
@@ -325,7 +332,8 @@ void read_message(int socket, struct user_record *user, int mailno) {
 			from = (char *)malloc(jsp->Fields[z]->DatLen + 1);
 			memset(from, 0, jsp->Fields[z]->DatLen + 1);
 			memcpy(from, jsp->Fields[z]->Buffer, jsp->Fields[z]->DatLen);
-		}				
+		}
+		
 		if (jsp->Fields[z]->LoID == JAMSFLD_RECVRNAME) {
 			to = (char *)malloc(jsp->Fields[z]->DatLen + 1);
 			memset(to, 0, jsp->Fields[z]->DatLen + 1);
@@ -335,10 +343,62 @@ void read_message(int socket, struct user_record *user, int mailno) {
 			memset(buffer, 0, jsp->Fields[z]->DatLen + 1);
 			memcpy(buffer, jsp->Fields[z]->Buffer, jsp->Fields[z]->DatLen);
 			from_addr = parse_fido_addr(buffer);
-		}							
+		}
+		if (jsp->Fields[z]->LoID == JAMSFLD_DADDRESS) {
+			dest_addr = (char *)malloc(jsp->Fields[z]->DatLen + 1);
+			memset(dest_addr, 0, jsp->Fields[z]->DatLen + 1);
+			memcpy(dest_addr, jsp->Fields[z]->Buffer, jsp->Fields[z]->DatLen);
+			
+		}						
 	}
 	
-	
+	if (jmh.Attribute & MSG_PRIVATE) {
+		wwiv_addressee = strdup(to);
+		for (i=0;i<strlen(to);i++) {
+			if (wwiv_addressee[i] == ' ') {
+				wwiv_addressee[i] = '\0';
+				break;
+			}
+		}
+		if (conf.mail_conferences[user->cur_mail_conf]->nettype == NETWORK_WWIV) {
+			if (conf.mail_conferences[user->cur_mail_conf]->wwivnode == atoi(dest_addr)) {
+				to_us = 1;
+			} else {
+				to_us = 0;
+			}
+		} else if (conf.mail_conferences[user->cur_mail_conf]->nettype == NETWORK_FIDO) {
+			dest = parse_fido_addr(dest_addr);
+			if (conf.mail_conferences[user->cur_mail_conf]->fidoaddr->zone == dest->zone &&
+				conf.mail_conferences[user->cur_mail_conf]->fidoaddr->net == dest->net &&
+				conf.mail_conferences[user->cur_mail_conf]->fidoaddr->node == dest->node &&
+				conf.mail_conferences[user->cur_mail_conf]->fidoaddr->point == dest->point) {
+			
+				to_us = 1;
+			} else {
+				to_us = 0;
+			}
+			free(dest);
+		}
+		free(dest_addr);
+		if (!(strcasecmp(wwiv_addressee, user->loginname) == 0) || ((strcasecmp(from, user->loginname) == 0) && to_us)) {							
+			JAM_DelSubPacket(jsp);
+			if (subject != NULL) {
+				free(subject);
+			}
+			if (from != NULL) {
+				free(from);
+			}
+			if (to != NULL) {
+				free(to);
+			}
+			if (from_addr) {
+				free(from_addr);
+			}
+			free(wwiv_addressee);
+			return;
+		}
+		free(wwiv_addressee);
+	}
 	if (from_addr != NULL) {
 		sprintf(buffer, "\e[2J\e[1;32mFrom    : \e[1;37m%s (%d:%d/%d.%d)\r\n", from, from_addr->zone, from_addr->net, from_addr->node, from_addr->point);
 	} else {
@@ -353,6 +413,8 @@ void read_message(int socket, struct user_record *user, int mailno) {
 	sprintf(buffer, "\e[1;32mDate    : \e[1;37m%s", asctime(&msg_date));
 	buffer[strlen(buffer) - 1] = '\0';
 	strcat(buffer, "\r\n");
+	s_putstring(socket, buffer);
+	sprintf(buffer, "\e[1;32mAttribs  : \e[1;37m%s\r\n", (jmh.Attribute & MSG_SENT ? "SENT" : ""));
 	s_putstring(socket, buffer);
 	s_putstring(socket, "\e[1;30m-------------------------------------------------------------------------------\e[0m\r\n");
 
@@ -485,6 +547,8 @@ void read_message(int socket, struct user_record *user, int mailno) {
 				} else if (conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->type == TYPE_NETMAIL_AREA) {
 					jmh.Attribute |= MSG_TYPENET;
 					jmh.Attribute |= MSG_KILLSENT;
+					jmh.Attribute |= MSG_PRIVATE;
+					
 					if (conf.mail_conferences[user->cur_mail_conf]->nettype == NETWORK_FIDO) {
 						if (conf.mail_conferences[user->cur_mail_conf]->fidoaddr->point) {
 							sprintf(buffer, "%d:%d/%d.%d", conf.mail_conferences[user->cur_mail_conf]->fidoaddr->zone,
@@ -519,7 +583,14 @@ void read_message(int socket, struct user_record *user, int mailno) {
 							jsf.Buffer = (char *)buffer;
 							JAM_PutSubfield(jsp, &jsf);						
 						}
-					}					
+					} else if (conf.mail_conferences[user->cur_mail_conf]->nettype == NETWORK_WWIV) {	
+						sprintf(buffer, "%d", atoi(strchr(from, '@') + 1));
+						jsf.LoID   = JAMSFLD_DADDRESS;
+						jsf.HiID   = 0;
+						jsf.DatLen = strlen(buffer);
+						jsf.Buffer = (char *)buffer;
+						JAM_PutSubfield(jsp, &jsf);			
+					}
 				}
 							
 				while (1) {
@@ -580,6 +651,7 @@ int mail_menu(int socket, struct user_record *user) {
 	char c;
 	char prompt[128];
 	char buffer[256];
+	char buffer2[256];
 	int i;
 	int j;
 	int z;
@@ -599,7 +671,7 @@ int mail_menu(int socket, struct user_record *user) {
 	char *to;
 	char *body;
 	char *replybody;
-	
+	char *wwiv_addressee;
 	
 	char *msg;
 	int closed;
@@ -607,6 +679,10 @@ int mail_menu(int socket, struct user_record *user) {
 	unsigned int lastmsg,currmsg;
 	int lines;
 	struct fido_addr *from_addr = NULL;
+	struct fido_addr *dest = NULL;
+	char *dest_addr;
+	int to_us;
+	int wwiv_to;
 	
 	while (!domail) {
 		s_displayansi(socket, "mailmenu");
@@ -642,13 +718,25 @@ int mail_menu(int socket, struct user_record *user) {
 					}
 					if (conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->type == TYPE_NETMAIL_AREA) {
 						s_putstring(socket, "\r\nADDR: ");
-						s_readstring(socket, buffer, 32);
-						from_addr = parse_fido_addr(buffer);
-						if (!from_addr) {
-							s_putstring(socket, "\r\n\r\nInvalid Address\r\n");
-							break;							
-						} else {
-							sprintf(buffer, "\r\nMailing to %d:%d/%d.%d\r\n", from_addr->zone, from_addr->net, from_addr->node, from_addr->point);
+						s_readstring(socket, buffer2, 32);
+						if (conf.mail_conferences[user->cur_mail_conf]->nettype == NETWORK_FIDO) {
+							from_addr = parse_fido_addr(buffer2);
+							if (!from_addr) {
+								s_putstring(socket, "\r\n\r\nInvalid Address\r\n");
+								break;							
+							} else {
+								sprintf(buffer2, "\r\nMailing to %d:%d/%d.%d\r\n", from_addr->zone, from_addr->net, from_addr->node, from_addr->point);
+								s_putstring(socket, buffer2);
+							}
+						} else if (conf.mail_conferences[user->cur_mail_conf]->nettype == NETWORK_WWIV) {
+							wwiv_to = atoi(buffer2);
+							if (wwiv_to == 0) {
+								s_putstring(socket, "\r\n\r\nInvalid Address\r\n");
+								break;							
+							} else {
+								sprintf(buffer2, "\r\nMailing to @%d\r\n", wwiv_to);
+								s_putstring(socket, buffer2);
+							}
 						}
 					}
 					to = strdup(buffer);
@@ -731,6 +819,7 @@ int mail_menu(int socket, struct user_record *user) {
 						if (conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->type == TYPE_NETMAIL_AREA) {
 							jmh.Attribute |= MSG_TYPENET;
 							jmh.Attribute |= MSG_KILLSENT;
+							jmh.Attribute |= MSG_PRIVATE;
 							if (conf.mail_conferences[user->cur_mail_conf]->nettype == NETWORK_FIDO) {
 								if (conf.mail_conferences[user->cur_mail_conf]->fidoaddr->point) {
 									sprintf(buffer, "%d:%d/%d.%d", conf.mail_conferences[user->cur_mail_conf]->fidoaddr->zone,
@@ -768,6 +857,13 @@ int mail_menu(int socket, struct user_record *user) {
 									free(from_addr);	
 									from_addr = NULL;			
 								}
+							} else if (conf.mail_conferences[user->cur_mail_conf]->nettype == NETWORK_WWIV) {	
+								sprintf(buffer, "%d", wwiv_to);
+								jsf.LoID   = JAMSFLD_DADDRESS;
+								jsf.HiID   = 0;
+								jsf.DatLen = strlen(buffer);
+								jsf.Buffer = (char *)buffer;
+								JAM_PutSubfield(jsp, &jsf);			
 							}					
 						}
 						
@@ -869,8 +965,62 @@ int mail_menu(int socket, struct user_record *user) {
 										memset(to, 0, jsp->Fields[z]->DatLen + 1);
 										memcpy(to, jsp->Fields[z]->Buffer, jsp->Fields[z]->DatLen);
 									}				
-													
+									if (jsp->Fields[z]->LoID == JAMSFLD_DADDRESS) {
+										dest_addr = (char *)malloc(jsp->Fields[z]->DatLen + 1);
+										memset(dest_addr, 0, jsp->Fields[z]->DatLen + 1);
+										memcpy(dest_addr, jsp->Fields[z]->Buffer, jsp->Fields[z]->DatLen);
+									}						
 								}
+								
+								if (jmh.Attribute & MSG_PRIVATE) {
+									wwiv_addressee = strdup(to);
+									for (i=0;i<strlen(to);i++) {
+										if (wwiv_addressee[i] == ' ') {
+											wwiv_addressee[i] = '\0';
+											break;
+										}
+									}
+									
+									if (conf.mail_conferences[user->cur_mail_conf]->nettype == NETWORK_WWIV) {
+										if (conf.mail_conferences[user->cur_mail_conf]->wwivnode == atoi(dest_addr)) {
+											to_us = 1;
+										} else {
+											to_us = 0;
+										}
+									} else if (conf.mail_conferences[user->cur_mail_conf]->nettype == NETWORK_FIDO) {
+										dest = parse_fido_addr(dest_addr);
+										if (conf.mail_conferences[user->cur_mail_conf]->fidoaddr->zone == dest->zone &&
+											conf.mail_conferences[user->cur_mail_conf]->fidoaddr->net == dest->net &&
+											conf.mail_conferences[user->cur_mail_conf]->fidoaddr->node == dest->node &&
+											conf.mail_conferences[user->cur_mail_conf]->fidoaddr->point == dest->point) {
+										
+											to_us = 1;
+										} else {
+											to_us = 0;
+										}
+										free(dest);
+									}
+									free(dest_addr);
+									if (!(strcasecmp(wwiv_addressee, user->loginname) == 0) || ((strcasecmp(from, user->loginname) == 0) && to_us)) {							
+										JAM_DelSubPacket(jsp);
+										if (subject != NULL) {
+											free(subject);
+										}
+										if (from != NULL) {
+											free(from);
+										}
+										if (to != NULL) {
+											free(to);
+										}
+										if (from_addr) {
+											free(from_addr);
+										}
+										free(wwiv_addressee);
+										break;
+									}
+									free(wwiv_addressee);
+								}
+
 								
 								localtime_r((time_t *)&jmh.DateWritten, &msg_date);
 								if (j > jlr.HighReadMsg) {
