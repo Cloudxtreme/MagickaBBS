@@ -999,6 +999,7 @@ int mail_menu(int socket, struct user_record *user) {
 										free(dest);
 									}
 									free(dest_addr);
+									
 									if (!(strcasecmp(wwiv_addressee, user->loginname) == 0) || ((strcasecmp(from, user->loginname) == 0) && to_us)) {							
 										JAM_DelSubPacket(jsp);
 										if (subject != NULL) {
@@ -1014,7 +1015,7 @@ int mail_menu(int socket, struct user_record *user) {
 											free(from_addr);
 										}
 										free(wwiv_addressee);
-										break;
+										continue;
 									}
 									free(wwiv_addressee);
 								}
