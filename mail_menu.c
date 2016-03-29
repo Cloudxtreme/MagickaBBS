@@ -565,7 +565,7 @@ void read_message(int socket, struct user_record *user, int mailno) {
 														conf.mail_conferences[user->cur_mail_conf]->fidoaddr->net,
 														conf.mail_conferences[user->cur_mail_conf]->fidoaddr->node,
 														conf.mail_conferences[user->cur_mail_conf]->fidoaddr->point,
-														&timestr[strlen(timestr) - 9]);
+														&timestr[strlen(timestr) - 8]);
 						
 						jsf.LoID   = JAMSFLD_MSGID;
 						jsf.HiID   = 0;
@@ -578,7 +578,7 @@ void read_message(int socket, struct user_record *user, int mailno) {
 									conf.mail_conferences[user->cur_mail_conf]->fidoaddr->net,
 									conf.mail_conferences[user->cur_mail_conf]->fidoaddr->node,
 									conf.mail_conferences[user->cur_mail_conf]->fidoaddr->point,
-									&msgid[strlen(timestr) - 9]);	
+									&msgid[strlen(timestr) - 8]);	
 						}
 						
 						jsf.LoID   = JAMSFLD_REPLYID;
@@ -633,7 +633,7 @@ void read_message(int socket, struct user_record *user, int mailno) {
 														conf.mail_conferences[user->cur_mail_conf]->fidoaddr->net,
 														conf.mail_conferences[user->cur_mail_conf]->fidoaddr->node,
 														conf.mail_conferences[user->cur_mail_conf]->fidoaddr->point,
-														&timestr[strlen(timestr) - 9]);
+														&timestr[strlen(timestr) - 8]);
 						
 						jsf.LoID   = JAMSFLD_MSGID;
 						jsf.HiID   = 0;
@@ -646,7 +646,7 @@ void read_message(int socket, struct user_record *user, int mailno) {
 									conf.mail_conferences[user->cur_mail_conf]->fidoaddr->net,
 									conf.mail_conferences[user->cur_mail_conf]->fidoaddr->node,
 									conf.mail_conferences[user->cur_mail_conf]->fidoaddr->point,
-									&msgid[strlen(timestr) - 9]);	
+									&msgid[strlen(timestr) - 8]);	
 						}
 						
 						jsf.LoID   = JAMSFLD_REPLYID;
@@ -898,7 +898,7 @@ int mail_menu(int socket, struct user_record *user) {
 																conf.mail_conferences[user->cur_mail_conf]->fidoaddr->net,
 																conf.mail_conferences[user->cur_mail_conf]->fidoaddr->node,
 																conf.mail_conferences[user->cur_mail_conf]->fidoaddr->point,
-																&timestr[strlen(timestr) - 9]);
+																&timestr[strlen(timestr) - 8]);
 								
 								jsf.LoID   = JAMSFLD_MSGID;
 								jsf.HiID   = 0;
@@ -955,7 +955,7 @@ int mail_menu(int socket, struct user_record *user) {
 																conf.mail_conferences[user->cur_mail_conf]->fidoaddr->net,
 																conf.mail_conferences[user->cur_mail_conf]->fidoaddr->node,
 																conf.mail_conferences[user->cur_mail_conf]->fidoaddr->point,
-																&timestr[strlen(timestr) - 9]);
+																&timestr[strlen(timestr) - 8]);
 								
 								jsf.LoID   = JAMSFLD_MSGID;
 								jsf.HiID   = 0;
