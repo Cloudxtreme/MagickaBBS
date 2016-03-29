@@ -86,7 +86,7 @@ char *editor(int socket, struct user_record *user, char *quote, char *from) {
 					tagline = conf.default_tagline;
 				}
 				
-				size += 7;
+				size += 18;
 				size += strlen(tagline);
 				
 				msg = (char *)malloc(size);
@@ -96,9 +96,9 @@ char *editor(int socket, struct user_record *user, char *quote, char *from) {
 					strcat(msg, "\r");
 					free(content[i]);
 				}
-				strcat(msg, "\r---\r");
-				strcat(msg, tagline);
-				strcat(msg, "\r");
+				
+				sprintf(buffer, "\r---\r * Origin: %s \r", tagline);
+				strcat(msg, buffer);
 				
 				free(content);
 				if (quote != NULL) {
