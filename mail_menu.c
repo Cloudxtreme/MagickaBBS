@@ -585,7 +585,8 @@ void read_message(int socket, struct user_record *user, int mailno) {
 						jsf.HiID   = 0;
 						jsf.DatLen = strlen(buffer);
 						jsf.Buffer = (char *)buffer;
-						JAM_PutSubfield(jsp, &jsf);						
+						JAM_PutSubfield(jsp, &jsf);	
+						jmh.ReplyCRC = JAM_Crc32(buffer, strlen(buffer));						
 					}
 				} else if (conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->type == TYPE_NETMAIL_AREA) {
 					jmh.Attribute |= MSG_TYPENET;
@@ -607,7 +608,7 @@ void read_message(int socket, struct user_record *user, int mailno) {
 						jsf.DatLen = strlen(buffer);
 						jsf.Buffer = (char *)buffer;
 						JAM_PutSubfield(jsp, &jsf);
-						
+						jmh.MsgIdCRC = JAM_Crc32(buffer, strlen(buffer));	
 						if (from_addr != NULL) {
 							if (from_addr->point) {
 								sprintf(buffer, "%d:%d/%d.%d", from_addr->zone,
@@ -639,7 +640,7 @@ void read_message(int socket, struct user_record *user, int mailno) {
 						jsf.DatLen = strlen(buffer);
 						jsf.Buffer = (char *)buffer;
 						JAM_PutSubfield(jsp, &jsf);
-						
+						jmh.MsgIdCRC = JAM_Crc32(buffer, strlen(buffer));	
 						if (msgid != NULL) {
 							sprintf(buffer, "%d:%d/%d.%d %s", conf.mail_conferences[user->cur_mail_conf]->fidoaddr->zone,
 									conf.mail_conferences[user->cur_mail_conf]->fidoaddr->net,
@@ -652,7 +653,8 @@ void read_message(int socket, struct user_record *user, int mailno) {
 						jsf.HiID   = 0;
 						jsf.DatLen = strlen(buffer);
 						jsf.Buffer = (char *)buffer;
-						JAM_PutSubfield(jsp, &jsf);								
+						JAM_PutSubfield(jsp, &jsf);	
+						jmh.ReplyCRC = JAM_Crc32(buffer, strlen(buffer));							
 					} else if (conf.mail_conferences[user->cur_mail_conf]->nettype == NETWORK_WWIV) {	
 						sprintf(buffer, "%d", atoi(strchr(from, '@') + 1));
 						jsf.LoID   = JAMSFLD_DADDRESS;
@@ -903,7 +905,7 @@ int mail_menu(int socket, struct user_record *user) {
 								jsf.DatLen = strlen(buffer);
 								jsf.Buffer = (char *)buffer;
 								JAM_PutSubfield(jsp, &jsf);
-								
+								jmh.MsgIdCRC = JAM_Crc32(buffer, strlen(buffer));
 								
 							}
 						} else
@@ -960,7 +962,7 @@ int mail_menu(int socket, struct user_record *user) {
 								jsf.DatLen = strlen(buffer);
 								jsf.Buffer = (char *)buffer;
 								JAM_PutSubfield(jsp, &jsf);
-								
+								jmh.MsgIdCRC = JAM_Crc32(buffer, strlen(buffer));
 							} else if (conf.mail_conferences[user->cur_mail_conf]->nettype == NETWORK_WWIV) {	
 								sprintf(buffer, "%d", wwiv_to);
 								jsf.LoID   = JAMSFLD_DADDRESS;
