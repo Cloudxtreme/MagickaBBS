@@ -1206,7 +1206,9 @@ int mail_menu(int socket, struct user_record *user) {
 				if (closed == 0) {
 					JAM_CloseMB(jb);
 				}
-				free_message_headers(msghs);
+				if (msghs != NULL) {
+					free_message_headers(msghs);
+				}
 				break;
 			case 'c':
 				{
