@@ -774,12 +774,12 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 							jsf.Buffer = (char *)buffer;
 							JAM_PutSubfield(jsp, &jsf);
 							jmh.MsgIdCRC = JAM_Crc32(buffer, strlen(buffer));	
-							if (msgid != NULL) {
+							if (msghs->msgs[mailno]->msgid != NULL) {
 								sprintf(buffer, "%d:%d/%d.%d %s", conf.mail_conferences[user->cur_mail_conf]->fidoaddr->zone,
 										conf.mail_conferences[user->cur_mail_conf]->fidoaddr->net,
 										conf.mail_conferences[user->cur_mail_conf]->fidoaddr->node,
 										conf.mail_conferences[user->cur_mail_conf]->fidoaddr->point,
-										&msgid[strlen(timestr) - 8]);	
+										&msghs->msgs[mailno]->msgid[strlen(timestr) - 8]);	
 							}
 							
 							jsf.LoID   = JAMSFLD_REPLYID;
@@ -933,6 +933,11 @@ int mail_menu(int socket, struct user_record *user) {
 								s_putstring(socket, "\r\n\r\nInvalid Address\r\n");
 								break;							
 							} else {
+								if (from_addr->zone == 0 && from_addr->net == 0 && from_addr->node == 0 && from_addr->point == 0) {
+									free(from_addr);
+									s_putstring(socket, "\r\n\r\nInvalid Address\r\n");
+									break;							
+								}
 								sprintf(buffer2, "\r\nMailing to %d:%d/%d.%d\r\n", from_addr->zone, from_addr->net, from_addr->node, from_addr->point);
 								s_putstring(socket, buffer2);
 							}
@@ -950,6 +955,14 @@ int mail_menu(int socket, struct user_record *user) {
 					to = strdup(buffer);
 					s_putstring(socket, "\r\nSUBJECT: ");
 					s_readstring(socket, buffer, 25);
+					if (strlen(buffer) == 0) {
+						s_putstring(socket, "\r\nAborted!\r\n");
+						free(to);
+						if (from_addr != NULL) {
+							free(from_addr);
+						}
+						break;
+					}
 					subject = strdup(buffer);
 					
 					// post a message
@@ -1295,6 +1308,11 @@ int mail_menu(int socket, struct user_record *user) {
 					to = strdup(buffer);
 					s_putstring(socket, "\r\nSUBJECT: ");
 					s_readstring(socket, buffer, 25);
+					if (strlen(buffer) == 0) {
+						free(to);
+						s_putstring(socket, "\r\nAborted\r\n");
+						break;
+					}
 					subject = strdup(buffer);
 					
 					// post a message
