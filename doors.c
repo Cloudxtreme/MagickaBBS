@@ -90,8 +90,8 @@ int write_door32sys(int socket, struct user_record *user) {
 	} else {
 		fprintf(fptr, "\n");
 	}
-	fprintf(fptr, "1\n"); // com port
-	fprintf(fptr, "38400\n");
+	fprintf(fptr, "COM1\n"); // com port
+	fprintf(fptr, "38400 BAUD,N,8,1\n");
 	fprintf(fptr, "0\n");
 	fprintf(fptr, "%s\n", user->firstname);
 	fprintf(fptr, "%s\n", user->lastname);
