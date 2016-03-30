@@ -91,6 +91,7 @@ struct msg_headers *read_message_headers(int msgconf, int msgarea, struct user_r
 	int i;
 	int z;
 	int j;
+	int k;
 	
 	struct fido_addr *dest;
 	struct msg_headers *msghs = NULL;
@@ -106,8 +107,8 @@ struct msg_headers *read_message_headers(int msgconf, int msgarea, struct user_r
 	if (jbh.ActiveMsgs > 0) {
 		msghs = (struct msg_headers *)malloc(sizeof(struct msg_headers));
 		msghs->msg_count = 0;
-	
-		for (i=0;msghs->msg_count < jbh.ActiveMsgs;i++) {
+		k = 0;
+		for (i=0;k < jbh.ActiveMsgs;i++) {
 
 			memset(&jmh, 0, sizeof(s_JamMsgHeader));
 			z = JAM_ReadMsgHeader(jb, i, &jmh, &jsp);						
@@ -229,6 +230,7 @@ struct msg_headers *read_message_headers(int msgconf, int msgarea, struct user_r
 					free(wwiv_addressee);
 					free(jamm->msg_h);
 					free(jamm);
+					k++;
 					continue;
 				}
 				free(wwiv_addressee);
@@ -241,7 +243,8 @@ struct msg_headers *read_message_headers(int msgconf, int msgarea, struct user_r
 			}
 			
 			msghs->msgs[msghs->msg_count] = jamm;
-			msghs->msg_count++;						
+			msghs->msg_count++;
+			k++;						
 		}
 		
 	} else {
@@ -268,7 +271,7 @@ char *editor(int socket, struct user_record *user, char *quote, char *from) {
 	int qfrom,qto;
 	int z;
 	char *tagline;
-	
+
 	if (quote != NULL) {
 		for (i=0;i<strlen(quote);i++) {
 			
