@@ -1211,17 +1211,18 @@ int mail_menu(int socket, struct user_record *user) {
 									read_message(socket, user, msghs, z);
 								}
 							}
-						}						
+						}
+						if (closed == 0) {
+							JAM_CloseMB(jb);
+						}
+						if (msghs != NULL) {
+							free_message_headers(msghs);
+						}
 					} else {
 						s_putstring(socket, "\r\nThere is no mail in this area\r\n");
 					}
 				} 
-				if (closed == 0) {
-					JAM_CloseMB(jb);
-				}
-				if (msghs != NULL) {
-					free_message_headers(msghs);
-				}
+
 				break;
 			case 'c':
 				{
