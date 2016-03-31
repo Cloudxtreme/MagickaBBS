@@ -599,7 +599,7 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 			if (user->sec_level < conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->write_sec_level) {
 				s_putstring(socket, "\r\nSorry, you are not allowed to post in this area\r\n");
 			} else {
-				if (subject != NULL) {
+				if (msghs->msgs[mailno]->subject != NULL) {
 					sprintf(buffer, "RE: %s", msghs->msgs[mailno]->subject);
 				}
 				subject = (char *)malloc(strlen(buffer) + 1);
@@ -1222,7 +1222,6 @@ int mail_menu(int socket, struct user_record *user) {
 						s_putstring(socket, "\r\nThere is no mail in this area\r\n");
 					}
 				} 
-
 				break;
 			case 'c':
 				{
