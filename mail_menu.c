@@ -1169,6 +1169,9 @@ int mail_menu(int socket, struct user_record *user) {
 								
 							s_readstring(socket, buffer, 6);
 							i = atoi(buffer);
+							if (i < 0) {
+								i = 0;
+							}
 							closed = 0;
 							s_putstring(socket, "\e[2J\e[1;37;44m[MSG#] Subject                   From            To              Date          \r\n\e[0m");
 								
