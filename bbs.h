@@ -82,7 +82,6 @@ struct bbs_config {
 	
 	char *ansi_path;
 	char *bbs_path;
-	char *email_path;
 	char *default_tagline;
 	
 	char *irc_server;
@@ -147,12 +146,16 @@ extern void list_users(int socket, struct user_record *user);
 extern void main_menu(int socket, struct user_record *user);
 
 extern void mail_scan(int socket, struct user_record *user);
-extern int mail_getemailcount(struct user_record *user);
 extern int mail_menu(int socket, struct user_record *user);
+extern char *editor(int socket, struct user_record *user, char *quote, char *from);
 
 extern int door_menu(int socket, struct user_record *user);
 
 extern void bbs_list(int socket, struct user_record *user);
 
 extern void chat_system(int sock, struct user_record *user);
+
+extern int mail_getemailcount(struct user_record *user);
+extern void send_email(int socket, struct user_record *user);
+extern void list_emails(int socket, struct user_record *user);
 #endif

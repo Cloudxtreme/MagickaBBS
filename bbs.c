@@ -307,8 +307,6 @@ static int handler(void* user, const char* section, const char* name,
 			conf->ansi_path = strdup(value);
 		} else if (strcasecmp(name, "bbs path") == 0) {
 			conf->bbs_path = strdup(value);
-		} else if (strcasecmp(name, "email path") == 0) {
-			conf->email_path = strdup(value);
 		}
 	} else if (strcasecmp(section, "mail conferences") == 0) {
 		if (conf->mail_conference_count == 0) {
@@ -558,10 +556,7 @@ void display_last10_callers(int socket, struct user_record *user, int record) {
 void display_info(int socket) {
 	char buffer[256];
 	struct utsname name;
-	int mailwaiting;
-	
-	mailwaiting = mail_getemailcount(gUser);
-	
+
 	uname(&name);
 	
 	sprintf(buffer, "\r\n\r\n\e[1;37mSystem Information\r\n");
