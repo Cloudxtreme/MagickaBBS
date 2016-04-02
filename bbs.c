@@ -166,6 +166,8 @@ static int file_sub_handler(void* user, const char* section, const char* name,
 					fd->file_subs[i]->download_sec_level = atoi(value);
 				} else if (strcasecmp(name, "database") == 0) {
 					fd->file_subs[i]->database = strdup(value);
+				} else if (strcasecmp(name, "upload path") == 0) {
+					fd->file_subs[i]->upload_path = strdup(value);
 				}
 				return 1;
 			}
@@ -185,6 +187,8 @@ static int file_sub_handler(void* user, const char* section, const char* name,
 			fd->file_subs[fd->file_sub_count]->download_sec_level = atoi(value);
 		} else if (strcasecmp(name, "database") == 0) {
 			fd->file_subs[fd->file_sub_count]->database = strdup(value);
+		} else if (strcasecmp(name, "upload path") == 0) {
+			fd->file_subs[fd->file_sub_count]->upload_path = strdup(value);
 		}
 		fd->file_sub_count++;
 	}
@@ -412,6 +416,9 @@ char s_getchar(int socket) {
 			len = read(socket, &c, 1);
 			if (len == 0) {
 				disconnect(socket);
+			} else if (c == 255) {
+				usertimeout = 10;
+				return c;
 			}
 			len = read(socket, &c, 1);
 			if (len == 0) {

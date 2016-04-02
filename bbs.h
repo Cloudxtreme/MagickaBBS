@@ -64,6 +64,7 @@ struct mail_conference {
 struct file_sub {
 	char *name;
 	char *database;
+	char *upload_path;
 	int upload_sec_level;
 	int download_sec_level;
 };
@@ -82,6 +83,7 @@ struct bbs_config {
 	
 	char *ansi_path;
 	char *bbs_path;
+	
 	char *default_tagline;
 	
 	char *irc_server;
@@ -158,4 +160,6 @@ extern void chat_system(int sock, struct user_record *user);
 extern int mail_getemailcount(struct user_record *user);
 extern void send_email(int socket, struct user_record *user);
 extern void list_emails(int socket, struct user_record *user);
+
+extern int file_menu(int socket, struct user_record *user);
 #endif
