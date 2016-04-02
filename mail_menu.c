@@ -824,6 +824,8 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 					free(replybody);
 					JAM_CloseMB(jb);
 					doquit = 1;
+				} else {
+					doquit = 1;
 				}
 			}
 			free(body);
