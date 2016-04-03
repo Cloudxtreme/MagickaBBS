@@ -208,8 +208,8 @@ struct user_record *check_user_pass(int socket, char *loginname, char *password)
 		user->timeleft = sqlite3_column_int(res, 9);
 		user->cur_mail_conf = sqlite3_column_int(res, 10);
 		user->cur_mail_area = sqlite3_column_int(res, 11);
-		user->cur_file_dir = sqlite3_column_int(res, 12);
-		user->cur_file_sub = sqlite3_column_int(res, 13);
+		user->cur_file_dir = sqlite3_column_int(res, 13);
+		user->cur_file_sub = sqlite3_column_int(res, 12);
 		user->timeson = sqlite3_column_int(res, 14);
 		
 		if (strcmp(password, user->password) != 0) {
@@ -381,7 +381,10 @@ struct user_record *new_user(int socket) {
 				s_putstring(socket, "Sorry, that name is reserved.\r\n");
 				continue;				
 			}
-		
+			if (strcasecmp(buffer, "all") == 0) {
+				s_putstring(socket, "Sorry, that name is reserved.\r\n");
+				continue;				
+			}
 			user->loginname = strdup(buffer);
 			nameok = check_user(user->loginname);
 			if (!nameok) {

@@ -1186,7 +1186,7 @@ int mail_menu(int socket, struct user_record *user) {
 								}
 								s_putstring(socket, buffer);
 								
-								if ((j - i) != 0 && (j - i) % 22 == 0) {
+								if ((j - i) != 0 && (j - i) % 20 == 0) {
 									sprintf(buffer, "(#) Read Message # (Q) Quit (ENTER) Continue\r\n");
 									s_putstring(socket, buffer);
 									s_readstring(socket, buffer, 6);
@@ -1202,6 +1202,7 @@ int mail_menu(int socket, struct user_record *user) {
 											break;
 										}
 									}
+									s_putstring(socket, "\e[2J\e[1;37;44m[MSG#] Subject                   From            To              Date          \r\n\e[0m");
 								}
 								
 							}
@@ -1236,7 +1237,7 @@ int mail_menu(int socket, struct user_record *user) {
 							sprintf(buffer, "  %d. %s\r\n", i, conf.mail_conferences[i]->name);
 							s_putstring(socket, buffer);
 						}
-						if (i != 0 && i % 22 == 0) {
+						if (i != 0 && i % 20 == 0) {
 							s_putstring(socket, "Press any key to continue...\r\n");
 							c = s_getc(socket);
 						}
@@ -1263,7 +1264,7 @@ int mail_menu(int socket, struct user_record *user) {
 							sprintf(buffer, "  %d. %s\r\n", i, conf.mail_conferences[user->cur_mail_conf]->mail_areas[i]->name);
 							s_putstring(socket, buffer);
 						}
-						if (i != 0 && i % 22 == 0) {
+						if (i != 0 && i % 20 == 0) {
 							s_putstring(socket, "Press any key to continue...\r\n");
 							c = s_getc(socket);
 						}

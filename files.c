@@ -472,18 +472,20 @@ void list_files(int socket, struct user_record *user) {
 		} else {
 			file_unit = 'b';
 		}
-		sprintf(buffer, "\e[1;30m[\e[1;34m%3d\e[1;30m] \e[1;33m%3ddloads \e[1;36m%4d%c \e[1;37m%-58s\r\n     \e[0;32m", i, files_e[i]->dlcount, file_size, file_unit, basename(files_e[i]->filename));
+		sprintf(buffer, "\r\n\r\n\e[1;30m[\e[1;34m%3d\e[1;30m] \e[1;33m%3ddloads \e[1;36m%4d%c \e[1;37m%-56s\r\n     \e[0;32m", i, files_e[i]->dlcount, file_size, file_unit, basename(files_e[i]->filename));
 		s_putstring(socket, buffer);
-		lines++;
+		lines+=3;
 		for (j=0;j<strlen(files_e[i]->description);j++) {
 			if (files_e[i]->description[j] == '\n') {
 				s_putstring(socket, "\r\n");
 				lines++;
-				if (lines % 22 == 0 && lines != 0) {
+				if (lines >= 18) {
+					lines = 0;
 					while (1) {
 						s_putstring(socket, "\r\n\e[0mEnter # to tag, Q to quit, Enter to continue: ");
 						s_readstring(socket, buffer, 5);
 						if (strlen(buffer) == 0) {
+							s_putstring(socket, "\r\n");
 							break;
 						} else if (tolower(buffer[0]) == 'q') {
 							for (z=0;z<files_c;z++) {
@@ -600,7 +602,7 @@ int file_menu(int socket, struct user_record *user) {
 							sprintf(prompt, "  %d. %s\r\n", i, conf.file_directories[i]->name);
 							s_putstring(socket, prompt);
 						}
-						if (i != 0 && i % 22 == 0) {
+						if (i != 0 && i % 20 == 0) {
 							s_putstring(socket, "Press any key to continue...\r\n");
 							c = s_getc(socket);
 						}
@@ -626,7 +628,7 @@ int file_menu(int socket, struct user_record *user) {
 						sprintf(prompt, "  %d. %s\r\n", i, conf.file_directories[user->cur_file_dir]->file_subs[i]->name);
 						s_putstring(socket, prompt);
 
-						if (i != 0 && i % 22 == 0) {
+						if (i != 0 && i % 20 == 0) {
 							s_putstring(socket, "Press any key to continue...\r\n");
 							c = s_getc(socket);
 						}
