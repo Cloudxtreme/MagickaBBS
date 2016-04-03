@@ -385,6 +385,10 @@ struct user_record *new_user(int socket) {
 				s_putstring(socket, "Sorry, that name is reserved.\r\n");
 				continue;				
 			}
+			if (strcasecmp(buffer, "new") == 0) {
+				s_putstring(socket, "Sorry, that name is reserved.\r\n");
+				continue;				
+			}			
 			user->loginname = strdup(buffer);
 			nameok = check_user(user->loginname);
 			if (!nameok) {
