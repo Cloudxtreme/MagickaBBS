@@ -246,7 +246,7 @@ struct user_record *check_user_pass(int socket, char *loginname, char *password)
 		user->cur_mail_area = 0;
 	}
 
-	if (user->cur_file_sub > conf.file_directories[user->cur_file_sub]->file_sub_count) {
+	if (user->cur_file_sub > conf.file_directories[user->cur_file_dir]->file_sub_count) {
 		user->cur_file_sub = 0;
 	}
 
