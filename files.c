@@ -707,7 +707,7 @@ int file_menu(int socket, struct user_record *user) {
 					if (i + 1 == conf.file_directories[user->cur_file_dir]->file_sub_count) {
 						i = -1;
 					}
-					user->cur_mail_area = i + 1;
+					user->cur_file_sub = i + 1;
 				}
 				break;
 			case '[':
@@ -716,7 +716,7 @@ int file_menu(int socket, struct user_record *user) {
 					if (i - 1 == -1) {
 						i = conf.file_directories[user->cur_file_dir]->file_sub_count;
 					}
-					user->cur_mail_area = i - 1;
+					user->cur_file_sub = i - 1;
 				}
 				break;
 			case 'q':
