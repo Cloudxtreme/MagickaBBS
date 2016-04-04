@@ -508,13 +508,14 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 	
 	
 	char buffer[256];
-	int z;
+	int z, z2;
 	struct tm msg_date;
 	
 	char *subject = NULL;
 	char *from = NULL;
 	char *to = NULL;	
 	char *body = NULL;
+	char *body2 = NULL;
 	int lines = 0;
 	char c;
 	char *replybody;
@@ -528,6 +529,7 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 	char *msgid = NULL;
 	char timestr[17];
 	int doquit = 0;
+	int skip_line = 0;
 	
 	jb = open_jam_base(conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->path);
 	if (!jb) {
@@ -574,7 +576,30 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 		JAM_ReadMsgText(jb, msghs->msgs[mailno]->msg_h->TxtOffset, msghs->msgs[mailno]->msg_h->TxtLen, (char *)body);
 		JAM_WriteLastRead(jb, user->id, &jlr);
 
+		body2 = (char *)malloc(msghs->msgs[mailno]->msg_h->TxtLen);
+		z2 = 0;
+		for (z=0;z<msghs->msgs[mailno]->msg_h->TxtLen;z++) {
+			if (body[z] == '\r') {
+				body[z2++] = '\r';
 
+				if (body[z+1] == 4 && body[z+2] == '0') {
+					skip_line = 1;
+				} else {
+					skip_line = 0;
+				}
+			} else {
+				if (!skip_line) {
+					if (body[z] == 03 || body[z] == 02) {
+						z++;
+					} else {
+						body2[z2++] = body[z];
+					}
+				}
+			}
+		}
+		
+		free(body);
+		body = body2;
 		
 		for (z=0;z<msghs->msgs[mailno]->msg_h->TxtLen;z++) {
 			if (body[z] == '\r') {
