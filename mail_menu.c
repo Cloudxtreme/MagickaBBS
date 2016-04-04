@@ -576,30 +576,38 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 		JAM_ReadMsgText(jb, msghs->msgs[mailno]->msg_h->TxtOffset, msghs->msgs[mailno]->msg_h->TxtLen, (char *)body);
 		JAM_WriteLastRead(jb, user->id, &jlr);
 
-		body2 = (char *)malloc(msghs->msgs[mailno]->msg_h->TxtLen);
-		z2 = 0;
-		for (z=0;z<msghs->msgs[mailno]->msg_h->TxtLen;z++) {
-			if (body[z] == '\r') {
-				body[z2++] = '\r';
-
-				if (body[z+1] == 4 && body[z+2] == '0') {
-					skip_line = 1;
-				} else {
-					skip_line = 0;
-				}
-			} else {
-				if (!skip_line) {
-					if (body[z] == 03 || body[z] == 02) {
-						z++;
+		if (conf.mail_conferences[user->cur_mail_conf]->nettype == NETWORK_WWIV) {
+			body2 = (char *)malloc(msghs->msgs[mailno]->msg_h->TxtLen);
+			z2 = 0;
+			for (z=0;z<msghs->msgs[mailno]->msg_h->TxtLen;z++) {
+				if (body[z] == '\r') {
+					body2[z2++] = '\r';
+					z++;
+					if (body[z+1] == 4 && body[z+2] == '0') {
+						skip_line = 1;
 					} else {
-						body2[z2++] = body[z];
+						skip_line = 0;
+					}
+				} else if (body[z] == '\n') {
+					if (body[z+1] == 4 && body[z+2] == '0') {
+						skip_line = 1;
+					} else {
+						skip_line = 0;
+					}
+				} else {
+					if (!skip_line) {
+						if (body[z] == 3 || body[z] == 4) {
+							z++;
+						} else {
+							body2[z2++] = body[z];
+						}
 					}
 				}
 			}
+			
+			free(body);
+			body = body2;
 		}
-		
-		free(body);
-		body = body2;
 		
 		for (z=0;z<msghs->msgs[mailno]->msg_h->TxtLen;z++) {
 			if (body[z] == '\r') {
