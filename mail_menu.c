@@ -579,12 +579,17 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 		if (conf.mail_conferences[user->cur_mail_conf]->nettype == NETWORK_WWIV) {
 			body2 = (char *)malloc(msghs->msgs[mailno]->msg_h->TxtLen);
 			z2 = 0;
+			if (body[0] == 4 && body[1] == '0') {
+				skip_line = 1;
+			} else {
+				skip_line = 0;
+			}
 			for (z=0;z<msghs->msgs[mailno]->msg_h->TxtLen;z++) {
 				if (body[z] == '\r') {
+					
 					body2[z2++] = '\r';
-					if (body[z+1] == '\n') {
-						z++;
-					}
+					z++;
+					
 					if (body[z+1] == 4 && body[z+2] == '0') {
 						skip_line = 1;
 					} else {
