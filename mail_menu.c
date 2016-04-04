@@ -586,7 +586,9 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 			}
 			for (z=0;z<msghs->msgs[mailno]->msg_h->TxtLen;z++) {
 				if (body[z] == '\r') {
-					z++;
+					if (body[z+1] == '\n') {
+						z++;
+					}
 					if (body[z+1] == 4 && body[z+2] == '0') {
 						skip_line = 1;
 					} else {
@@ -606,9 +608,11 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 			
 			free(body);
 			body = body2;
+		} else {
+			z2 = msghs->msgs[mailno]->msg_h->TxtLen;
 		}
 		
-		for (z=0;z<msghs->msgs[mailno]->msg_h->TxtLen;z++) {
+		for (z=0;z<z2;z++) {
 			if (body[z] == '\r') {
 				s_putstring(socket, "\r\n");
 				lines++;
