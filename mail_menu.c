@@ -1188,7 +1188,7 @@ int mail_menu(int socket, struct user_record *user) {
 					s_putstring(socket, "\r\n");
 					// list mail in message base
 					msghs = read_message_headers(user->cur_mail_conf, user->cur_mail_area, user);
-					if (msghs != NULL) {
+					if (msghs != NULL && msghs->msg_count > 0) {
 						jb = open_jam_base(conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->path);
 						if (!jb) {
 							printf("Error opening JAM base.. %s\n", conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->path);
