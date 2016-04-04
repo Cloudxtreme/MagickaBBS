@@ -586,13 +586,11 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 			}
 			for (z=0;z<msghs->msgs[mailno]->msg_h->TxtLen;z++) {
 				if (body[z] == '\r') {
-					
-					body2[z2++] = '\r';
 					z++;
-					
 					if (body[z+1] == 4 && body[z+2] == '0') {
 						skip_line = 1;
 					} else {
+						body2[z2++] = '\r';
 						skip_line = 0;
 					}
 				} else {
