@@ -10,6 +10,8 @@
 #include <sys/ioctl.h>
 #if defined(linux)
 #  include <pty.h>
+#elif defined(__OpenBSD__) || defined(__NetBSD__)
+#  include <util.h>
 #else
 #  include <libutil.h>
 #endif
@@ -17,6 +19,17 @@
 
 extern struct bbs_config conf;
 extern int mynode;
+
+int running_door_pid = 0;
+int running_door = 0;
+
+void doorchld_handler(int s)
+{
+    // waitpid() might overwrite errno, so we save and restore it:
+    while(waitpid(-1, NULL, WNOHANG) > 0);
+
+	running_door = 0;
+}
 
 int write_door32sys(int socket, struct user_record *user) {
 	struct stat s;
@@ -121,6 +134,7 @@ void rundoor(int socket, struct user_record *user, char *cmd, int stdio) {
 	fd_set fdset;
 	int t;
 	struct winsize ws;
+	struct sigaction sa;
 	
 	if (write_door32sys(socket, user) != 0) {
 		return;
@@ -138,7 +152,17 @@ void rundoor(int socket, struct user_record *user, char *cmd, int stdio) {
 		ws.ws_row = 24;
 		ws.ws_col = 80;
 		
+		running_door = 1;
+		
 		if (openpty(&master, &slave, NULL, NULL, &ws) == 0) {
+			sa.sa_handler = doorchld_handler;
+			sigemptyset(&sa.sa_mask);
+			sa.sa_flags = SA_RESTART;
+			if (sigaction(SIGCHLD, &sa, NULL) == -1) {
+				perror("sigaction");
+				exit(1);
+			}
+			
 			pid = fork();
 			if (pid < 0) {
 				return;
@@ -156,7 +180,9 @@ void rundoor(int socket, struct user_record *user, char *cmd, int stdio) {
 				
 				execvp(cmd, arguments);
 			} else {
-				while(1) {
+				running_door_pid = pid;
+				
+				while(running_door != 0) {
 					FD_ZERO(&fdset);
 					FD_SET(master, &fdset);
 					FD_SET(socket, &fdset);
