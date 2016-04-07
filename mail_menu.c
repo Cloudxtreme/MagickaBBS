@@ -357,6 +357,8 @@ char *external_editor(int socket, struct user_record *user, char *to, char *from
 			sprintf(buffer, "\r---\r * Origin: %s \r", tagline);
 			strcat(body2, buffer);
 			
+			free(body);
+			
 			return body2;
 		}
 	}
