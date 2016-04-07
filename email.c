@@ -50,7 +50,7 @@ void send_email(int socket, struct user_record *user) {
 	subject = strdup(buffer);
 					
 	// post a message
-	msg = editor(socket, user, NULL, NULL);
+	msg = external_editor(socket, user, user->loginname, recipient, NULL, NULL, subject, 1);
 					
 	if (msg != NULL) {
 		sprintf(buffer, "%s/email.sq3", conf.bbs_path);
@@ -188,8 +188,8 @@ void show_email(int socket, struct user_record *user, int msgno) {
 			subject = (char *)malloc(strlen(buffer) + 1);
 			strcpy(subject, buffer);
 						
-			replybody = editor(socket, user, body, sender);
-									
+			//replybody = editor(socket, user, body, sender);
+			replybody = external_editor(socket, user, user->loginname, sender, body, sender, subject, 1);	
 			if (replybody != NULL) {
 				rc = sqlite3_prepare_v2(db, isql, -1, &res, 0);
 		

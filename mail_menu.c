@@ -4,11 +4,12 @@
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
+#include <sys/stat.h>
 #include "jamlib/jam.h"
 #include "bbs.h"
 
 extern struct bbs_config conf; 
-
+extern int mynode;
 struct jam_msg {
 	int msg_no;
 	s_JamMsgHeader *msg_h;
@@ -255,6 +256,113 @@ struct msg_headers *read_message_headers(int msgconf, int msgarea, struct user_r
 	return msghs;
 }
 
+char *external_editor(int socket, struct user_record *user, char *to, char *from, char *quote, char *qfrom, char *subject, int email) {
+	char c;
+	FILE *fptr;
+	char *body = NULL;
+	char buffer[256];
+	int len;
+	int totlen;
+	char *body2 = NULL;
+	char *tagline;
+	int i;
+	int j;
+	struct stat s;
+	
+	if (conf.external_editor_cmd != NULL) {
+		s_putstring(socket, "\r\nUse external editor? (Y/N) ");
+		c = s_getc(socket);
+		if (tolower(c) == 'y') {
+			
+			sprintf(buffer, "%s/node%d/MSGTMP", conf.bbs_path, mynode);
+			
+			if (stat(buffer, &s) == 0) {
+				remove(buffer);
+			}
+			
+			// write msgtemp
+			if (quote != NULL) {
+				fptr = fopen(buffer, "w");
+				fwrite(quote, strlen(quote), 1, fptr);
+				fclose(fptr);
+			}
+			sprintf(buffer, "%s/node%d/MSGINF", conf.bbs_path, mynode);
+			fptr = fopen(buffer, "w");
+			fprintf(fptr, "%s\r\n", user->loginname);
+			fprintf(fptr, "%s\r\n", to);
+			fprintf(fptr, "%s\r\n", subject);
+			fprintf(fptr, "0\r\n");
+			if (email == 1) {
+				fprintf(fptr, "E-Mail\r\n");
+				fprintf(fptr, "YES\r\n");
+			} else {
+				fprintf(fptr, "%s\r\n", conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->name);
+				if (conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->type == TYPE_NETMAIL_AREA){
+					fprintf(fptr, "YES\r\n");
+				} else {
+					fprintf(fptr, "NO\r\n");
+				}
+			}
+			fclose(fptr);
+			
+			rundoor(socket, user, conf.external_editor_cmd, conf.external_editor_stdio);
+			
+			// readin msgtmp
+			sprintf(buffer, "%s/node%d/MSGTMP", conf.bbs_path, mynode);
+			fptr = fopen(buffer, "r");
+			if (!fptr) {
+				return NULL;
+			}
+	
+			totlen = 0;
+			len = fread(buffer, 1, 256, fptr);
+			while (len > 0) {
+				totlen += len;
+				if (body == NULL) {
+					body = (char *)malloc(totlen + 1);
+				} else {
+					body = (char *)realloc(body, totlen + 1);
+				}
+				
+				memcpy(&body[totlen - len], buffer, len);
+				body[totlen] = '\0';
+				
+				len = fread(buffer, 1, 256, fptr);
+			}
+			
+			fclose(fptr);
+			
+			if (email == 1) {	
+				tagline = conf.default_tagline;
+			} else {
+				if (conf.mail_conferences[user->cur_mail_conf]->tagline != NULL) {
+					tagline = conf.mail_conferences[user->cur_mail_conf]->tagline;
+				} else {
+					tagline = conf.default_tagline;
+				}
+			}
+			
+			
+			body2 = (char *)malloc(strlen(body) + 19 + strlen(tagline));
+			
+			j = 0;
+			
+			for (i=0;i<strlen(body);i++) {
+				if (body[i] == '\n') {
+					continue;
+				}
+				body2[j++] = body[i];
+			}
+			
+			sprintf(buffer, "\r---\r * Origin: %s \r", tagline);
+			strcat(body2, buffer);
+			
+			return body2;
+		}
+	}
+	return editor(socket, user, quote, qfrom);
+}
+
 char *editor(int socket, struct user_record *user, char *quote, char *from) {
 	int lines = 0;
 	char buffer[256];
@@ -271,6 +379,7 @@ char *editor(int socket, struct user_record *user, char *quote, char *from) {
 	int qfrom,qto;
 	int z;
 	char *tagline;
+
 
 	if (quote != NULL) {
 		for (i=0;i<strlen(quote);i++) {
@@ -670,7 +779,7 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 					to = (char *)malloc(strlen(buffer) + 1);
 					strcpy(to, buffer);
 				}
-				replybody = editor(socket, user, body, to);
+				replybody = external_editor(socket, user, to, from, body, msghs->msgs[mailno]->from, subject, 0);
 				if (replybody != NULL) {
 					
 					jb = open_jam_base(conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->path);
@@ -1007,7 +1116,7 @@ int mail_menu(int socket, struct user_record *user) {
 					subject = strdup(buffer);
 					
 					// post a message
-					msg = editor(socket, user, NULL, NULL);
+					replybody = external_editor(socket, user, to, from, NULL, NULL, subject, 0);
 					
 					if (msg != NULL) {
 						jb = open_jam_base(conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->path);

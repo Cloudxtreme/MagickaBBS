@@ -90,6 +90,9 @@ struct bbs_config {
 	int irc_port;
 	char *irc_channel;
 	
+	char *external_editor_cmd;
+	int external_editor_stdio;
+	
 	int nodes;
 	int newuserlvl;
 	int mail_conference_count;
@@ -150,8 +153,10 @@ extern void main_menu(int socket, struct user_record *user);
 extern void mail_scan(int socket, struct user_record *user);
 extern int mail_menu(int socket, struct user_record *user);
 extern char *editor(int socket, struct user_record *user, char *quote, char *from);
+extern char *external_editor(int socket, struct user_record *user, char *to, char *from, char *quote, char *qfrom, char *subject, int email);
 
 extern int door_menu(int socket, struct user_record *user);
+extern void rundoor(int socket, struct user_record *user, char *cmd, int stdio);
 
 extern void bbs_list(int socket, struct user_record *user);
 

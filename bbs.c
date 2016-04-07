@@ -305,6 +305,14 @@ static int handler(void* user, const char* section, const char* name,
 			conf->irc_channel = strdup(value);
 		} else if (strcasecmp(name, "default tagline") == 0) {
 			conf->default_tagline = strdup(value);
+		} else if (strcasecmp(name, "external editor cmd") == 0) {
+			conf->external_editor_cmd = strdup(value);
+		} else if (strcasecmp(name, "external editor stdio") == 0) {
+			if (strcasecmp(value, "true") == 0) {
+				conf->external_editor_stdio = 1;
+			} else {
+				conf->external_editor_stdio = 0;
+			}
 		}
 	} else if (strcasecmp(section, "paths") == 0){
 		if (strcasecmp(name, "ansi path") == 0) {
@@ -619,6 +627,7 @@ void runbbs(int socket, char *config_path) {
 	conf.irc_server = NULL;
 	conf.irc_port = 6667;
 	conf.text_file_count = 0;
+	conf.external_editor_cmd = NULL;
 	
 	// Load BBS data
 	if (ini_parse(config_path, handler, &conf) <0) {
