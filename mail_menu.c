@@ -343,15 +343,16 @@ char *external_editor(int socket, struct user_record *user, char *to, char *from
 			}
 			
 			
-			body2 = (char *)malloc(strlen(body) + 19 + strlen(tagline));
+			body2 = (char *)malloc(totlen + 19 + strlen(tagline));
 			
 			j = 0;
 			
-			for (i=0;i<strlen(body);i++) {
+			for (i=0;i<totlen;i++) {
 				if (body[i] == '\n') {
 					continue;
 				}
 				body2[j++] = body[i];
+				body2[j] = '\0';
 			}
 			
 			sprintf(buffer, "\r---\r * Origin: %s \r", tagline);
