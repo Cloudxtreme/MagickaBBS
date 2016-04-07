@@ -1116,7 +1116,7 @@ int mail_menu(int socket, struct user_record *user) {
 					subject = strdup(buffer);
 					
 					// post a message
-					replybody = external_editor(socket, user, to, from, NULL, NULL, subject, 0);
+					msg = external_editor(socket, user, to, from, NULL, NULL, subject, 0);
 					
 					if (msg != NULL) {
 						jb = open_jam_base(conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->path);
