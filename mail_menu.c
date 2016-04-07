@@ -275,7 +275,7 @@ char *editor(int socket, struct user_record *user, char *quote, char *from) {
 	if (quote != NULL) {
 		for (i=0;i<strlen(quote);i++) {
 			
-			if (quote[i] == '\r' || lineat == 75) {
+			if (quote[i] == '\r' || lineat == 68) {
 				if (quotelines == 0) {
 					quotecontent = (char **)malloc(sizeof(char *));
 				} else {
@@ -287,6 +287,9 @@ char *editor(int socket, struct user_record *user, char *quote, char *from) {
 				quotelines++;
 				lineat = 0;
 				linebuffer[0] = '\0';
+				if (quote[i] != '\r') {
+					i--;
+				}
 			} else {
 				linebuffer[lineat++] = quote[i];
 				linebuffer[lineat] = '\0';
