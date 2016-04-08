@@ -727,14 +727,16 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 			z2 = msghs->msgs[mailno]->msg_h->TxtLen;
 		}
 		
+		
 		for (z=0;z<z2;z++) {
 			if (body[z] == '\r') {
 				s_putstring(socket, "\r\n");
 				lines++;
-				if (lines == 18) {
+				if (lines == 17) {
 					s_putstring(socket, "Press a key to continue...\r\n");
 					s_getc(socket);
 					lines = 0;
+					s_putstring(socket, "\e[7;1H\e[0J");
 				}
 			} else {
 				s_putchar(socket, body[z]);
