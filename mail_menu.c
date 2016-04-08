@@ -743,7 +743,7 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 					s_putstring(socket, "\e[7;1H\e[0J");
 				}
 			} else if (body[z] == '\e' && body[z + 1] == '[') {
-				while (strchr("ABCDEFGHIGJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", body[z]) != NULL)
+				while (strchr("ABCDEFGHIGJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", body[z]) == NULL)
 					z++;
 			} else {
 				chars++;
