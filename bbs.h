@@ -5,7 +5,7 @@
 
 #define VERSION_MAJOR 0
 #define VERSION_MINOR 1
-#define VERSION_STR "dev"
+#define VERSION_STR "alpha"
 
 #define NETWORK_FIDO 1
 #define NETWORK_WWIV 2
