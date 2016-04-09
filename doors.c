@@ -201,7 +201,7 @@ void rundoor(int socket, struct user_record *user, char *cmd, int stdio) {
 								return;
 							}
 							if (c == '\r') {
-								c == '\n';
+								c = '\n';
 							} else if (c == '\n' || c == '\0') {
 								continue;
 							}
