@@ -283,13 +283,28 @@ char *external_editor(int socket, struct user_record *user, char *to, char *from
 			// write msgtemp
 			if (quote != NULL) {
 				fptr = fopen(buffer, "w");
-				fwrite(quote, strlen(quote), 1, fptr);
+				for (i=0;i<strlen(quote);i++) {
+					if (quote[i] == '\r') {
+						fprintf(fptr, "\r\n");
+					} else if (quote[i] == 0x1) {
+						continue;
+					} else if (quote[i] == '\e' && quote[i + 1] == '[') {
+						while (strchr("ABCDEFGHIGJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", quote[i]) == NULL)
+							i++;
+					} else {
+						fprintf(fptr, "%c", quote[i]);
+					}
+				}
 				fclose(fptr);
 			}
 			sprintf(buffer, "%s/node%d/MSGINF", conf.bbs_path, mynode);
 			fptr = fopen(buffer, "w");
 			fprintf(fptr, "%s\r\n", user->loginname);
-			fprintf(fptr, "%s\r\n", to);
+			if (qfrom != NULL) {
+				fprintf(fptr, "%s\r\n", qfrom);
+			} else {
+				fprintf(fptr, "%s\r\n", to);
+			}
 			fprintf(fptr, "%s\r\n", subject);
 			fprintf(fptr, "0\r\n");
 			if (email == 1) {
@@ -761,7 +776,11 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 				s_putstring(socket, "\r\nSorry, you are not allowed to post in this area\r\n");
 			} else {
 				if (msghs->msgs[mailno]->subject != NULL) {
-					sprintf(buffer, "RE: %s", msghs->msgs[mailno]->subject);
+					if (strncasecmp(msghs->msgs[mailno]->subject, "RE:", 3) != 0) {
+						snprintf(buffer, 256, "RE: %s", msghs->msgs[mailno]->subject);
+					} else {
+						snprintf(buffer, 256, "%s", msghs->msgs[mailno]->subject);
+					}
 				}
 				subject = (char *)malloc(strlen(buffer) + 1);
 				strcpy(subject, buffer);

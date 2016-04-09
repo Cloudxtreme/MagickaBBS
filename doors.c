@@ -200,6 +200,9 @@ void rundoor(int socket, struct user_record *user, char *cmd, int stdio) {
 								disconnect(socket);
 								return;
 							}
+							if (c == '\n' || c == '\0') {
+								continue;
+							}
 							write(master, &c, 1);
 						} else if (FD_ISSET(master, &fdset)) {
 							len = read(master, &c, 1);

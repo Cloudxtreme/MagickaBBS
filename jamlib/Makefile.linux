@@ -1,4 +1,4 @@
-CC = gcc $(CPPFLAGS) $(CFLAGS) -D__LINUX__ $(LDFLAGS) -Wall
+CC = cc $(CPPFLAGS) $(CFLAGS) -D__LINUX__ $(LDFLAGS) -Wall
 AR = ar -ru
 RM = rm -f
 
