@@ -283,7 +283,13 @@ char *external_editor(int socket, struct user_record *user, char *to, char *from
 			// write msgtemp
 			if (quote != NULL) {
 				fptr = fopen(buffer, "w");
-				fwrite(quote, strlen(quote), 1, fptr);
+				for (i=0;i<strlen(quote);i++) {
+					if (quote[i] == '\r') {
+						fprintf(fptr, "\r\n");
+					} else {
+						fprintf(fptr, "%c", quote[i]);
+					}
+				}
 				fclose(fptr);
 			}
 			sprintf(buffer, "%s/node%d/MSGINF", conf.bbs_path, mynode);
