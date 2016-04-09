@@ -1372,6 +1372,8 @@ int mail_menu(int socket, struct user_record *user) {
 									s_readstring(socket, buffer, 6);
 									
 									if (tolower(buffer[0]) == 'q') {
+										JAM_CloseMB(jb);
+										closed = 1;
 										break;
 									} else if (strlen(buffer) > 0) {
 										z = atoi(buffer);
@@ -1386,21 +1388,23 @@ int mail_menu(int socket, struct user_record *user) {
 								}
 								
 							}
-							sprintf(buffer, "(#) Read Message # (ENTER) Quit\r\n");
-							s_putstring(socket, buffer);
-							s_readstring(socket, buffer, 6);
-							if (strlen(buffer) > 0) {
-								z = atoi(buffer);
-								if (z >= 0 && z <= msghs->msg_count) {
-									JAM_CloseMB(jb);
-									closed = 1;
-									read_message(socket, user, msghs, z);
+							if (closed == 0) {
+								sprintf(buffer, "(#) Read Message # (ENTER) Quit\r\n");
+								s_putstring(socket, buffer);
+								s_readstring(socket, buffer, 6);
+								if (strlen(buffer) > 0) {
+									z = atoi(buffer);
+									if (z >= 0 && z <= msghs->msg_count) {
+										JAM_CloseMB(jb);
+										closed = 1;
+										read_message(socket, user, msghs, z);
+									}
 								}
+							
+								JAM_CloseMB(jb);
 							}
 						}
-						if (closed == 0) {
-							JAM_CloseMB(jb);
-						}
+						
 						if (msghs != NULL) {
 							free_message_headers(msghs);
 						}
