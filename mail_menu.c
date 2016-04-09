@@ -286,6 +286,8 @@ char *external_editor(int socket, struct user_record *user, char *to, char *from
 				for (i=0;i<strlen(quote);i++) {
 					if (quote[i] == '\r') {
 						fprintf(fptr, "\r\n");
+					} else if (quote[i] == 0x1) {
+						continue;
 					} else {
 						fprintf(fptr, "%c", quote[i]);
 					}
