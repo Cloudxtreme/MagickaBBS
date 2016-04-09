@@ -23,6 +23,8 @@ extern int mynode;
 int running_door_pid = 0;
 int running_door = 0;
 
+extern int timeoutpaused;
+
 void doorchld_handler(int s)
 {
     // waitpid() might overwrite errno, so we save and restore it:
@@ -136,6 +138,8 @@ void rundoor(int socket, struct user_record *user, char *cmd, int stdio) {
 	struct winsize ws;
 	struct sigaction sa;
 	
+	timeoutpaused = 1;
+	
 	if (write_door32sys(socket, user) != 0) {
 		return;
 	}
@@ -223,6 +227,7 @@ void rundoor(int socket, struct user_record *user, char *cmd, int stdio) {
 		sprintf(buffer, "%s %d %d", cmd, mynode, socket);
 		system(buffer);
 	}
+	timeoutpaused = 0;
 }
 
 int door_menu(int socket, struct user_record *user) {

@@ -19,6 +19,7 @@ struct user_record *gUser;
 int gSocket;
 
 int usertimeout;
+int timeoutpaused;
 
 struct fido_addr *parse_fido_addr(const char *str) {
 	struct fido_addr *ret = (struct fido_addr *)malloc(sizeof(struct fido_addr));
@@ -89,7 +90,9 @@ void timer_handler(int signum) {
 			
 
 		} 
-		usertimeout--;
+		if (timeoutpaused == 0) {
+			usertimeout--;
+		}
 		if (usertimeout <= 0) {
 			s_putstring(gSocket, "\r\n\r\nTimeout waiting for input..\r\n");
 			disconnect(gSocket);
@@ -682,6 +685,7 @@ void runbbs(int socket, char *config_path) {
 	gUser = NULL;
 	gSocket = socket;
 	usertimeout = 10;
+	timeoutpaused = 0;
 	
 	memset (&sa, 0, sizeof (sa));
 	sa.sa_handler = &timer_handler;
