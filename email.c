@@ -118,6 +118,7 @@ void show_email(int socket, struct user_record *user, int msgno) {
 	int lines;
 	char c;
 	char *replybody;
+	int chars;
 	
 	sprintf(buffer, "%s/email.sq3", conf.bbs_path);
 	
@@ -160,18 +161,22 @@ void show_email(int socket, struct user_record *user, int msgno) {
 		s_putstring(socket, "\e[1;30m-------------------------------------------------------------------------------\e[0m\r\n");
 		
 		lines = 0;
+		chars = 0;
 		
 		for (z=0;z<strlen(body);z++) {
-			if (body[z] == '\r') {
+			if (body[z] == '\r' || chars == 79) {
+				chars = 0;
 				s_putstring(socket, "\r\n");
 				lines++;
-				if (lines == 18) {
-					s_putstring(socket, "Press a key to continue...\r\n");
+				if (lines == 19) {
+					s_putstring(socket, "Press a key to continue...");
 					s_getc(socket);
 					lines = 0;
+					s_putstring(socket, "\e[5;1H\e[0J");
 				}
 			} else {
 				s_putchar(socket, body[z]);
+				chars++;
 			}
 		}
 		
@@ -182,7 +187,11 @@ void show_email(int socket, struct user_record *user, int msgno) {
 		sqlite3_finalize(res);
 		if (tolower(c) == 'r') {		
 			if (subject != NULL) {
-				sprintf(buffer, "RE: %s", subject);
+				if (strncasecmp(buffer, "RE:", 3) != 0) {
+					snprintf(buffer, 256, "RE: %s", subject);
+				} else {
+					snprintf(buffer, 256, "%s", subject);
+				}
 				free(subject);
 			}
 			subject = (char *)malloc(strlen(buffer) + 1);
@@ -299,7 +308,7 @@ void list_emails(int socket, struct user_record *user) {
 		free(from);
 		free(subject);
 		
-		if (msgid % 22 && msgid != 0) {
+		if (msgid % 22 == 0 && msgid != 0) {
 			s_putstring(socket, "Enter # to read, Q to quit or Enter to continue\r\n");
 
 			s_readstring(socket, buffer, 5);
