@@ -12,7 +12,7 @@ If you want to install Magicka BBS, follow these steps.
 1. Ensure you have git, c compiler, sqlite-dev and gnu make
 2. Clone the repo `git clone https://github.com/apamment/MagickaBBS`
 
-2a. This is the master branch, it's recommended to check out the 0.1 branch
+***This is the master branch, it's recommended to check out the 0.1 branch***
     
     cd MagickaBBS/
     git checkout 0.1   
