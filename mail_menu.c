@@ -288,6 +288,9 @@ char *external_editor(int socket, struct user_record *user, char *to, char *from
 						fprintf(fptr, "\r\n");
 					} else if (quote[i] == 0x1) {
 						continue;
+					} else if (quote[i] == '\e' && quote[i + 1] == '[') {
+						while (strchr("ABCDEFGHIGJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", quote[i]) == NULL)
+							i++;
 					} else {
 						fprintf(fptr, "%c", quote[i]);
 					}
