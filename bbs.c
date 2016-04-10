@@ -770,7 +770,7 @@ void runbbs(int socket, char *config_path) {
 	while (stat(buffer, &s) == 0) {
 		sprintf(buffer, "bulletin%d", i);
 		s_displayansi(socket, buffer);
-		sprintf(buffer, "Press any key to continue...\r\n");
+		sprintf(buffer, "\e[0mPress any key to continue...\r\n");
 		s_putstring(socket, buffer);
 		s_getc(socket);
 		i++;
