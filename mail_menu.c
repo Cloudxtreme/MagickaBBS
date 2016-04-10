@@ -339,6 +339,8 @@ char *external_editor(int socket, struct user_record *user, char *to, char *from
 					body = (char *)realloc(body, totlen + 1);
 				}
 				
+				
+				
 				memcpy(&body[totlen - len], buffer, len);
 				body[totlen] = '\0';
 				
@@ -364,6 +366,8 @@ char *external_editor(int socket, struct user_record *user, char *to, char *from
 			
 			for (i=0;i<totlen;i++) {
 				if (body[i] == '\n') {
+					continue;
+				} else if (body[i] == '\0') {
 					continue;
 				}
 				body2[j++] = body[i];
