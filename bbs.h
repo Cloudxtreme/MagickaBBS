@@ -137,6 +137,7 @@ extern void s_putstring(int socket, char *c);
 extern void s_displayansi_p(int socket, char *file);
 extern void s_displayansi(int socket, char *file);
 extern char s_getchar(int socket);
+extern void s_readpass(int socket, char *buffer, int max);
 extern void s_readstring(int socket, char *buffer, int max);
 extern char s_getc(int socket);
 extern void disconnect(int socket);
@@ -168,4 +169,6 @@ extern void send_email(int socket, struct user_record *user);
 extern void list_emails(int socket, struct user_record *user);
 
 extern int file_menu(int socket, struct user_record *user);
+
+extern void settings_menu(int sock, struct user_record *user);
 #endif

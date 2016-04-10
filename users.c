@@ -213,6 +213,11 @@ struct user_record *check_user_pass(int socket, char *loginname, char *password)
 		user->timeson = sqlite3_column_int(res, 14);
 		
 		if (strcmp(password, user->password) != 0) {
+			free(user->loginname);
+			free(user->firstname);
+			free(user->lastname);
+			free(user->email);
+			free(user->location);
 			free(user);
 		    sqlite3_finalize(res);
 			sqlite3_close(db);	

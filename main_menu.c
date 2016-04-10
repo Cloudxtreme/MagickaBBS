@@ -119,6 +119,11 @@ void main_menu(int socket, struct user_record *user) {
 					doquit = file_menu(socket, user);
 				}
 				break;
+			case 's':
+				{
+					settings_menu(socket, user);
+				}
+				break;
 		}
 	}
 }

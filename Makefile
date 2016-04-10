@@ -4,7 +4,7 @@ DEPS = bbs.h
 JAMLIB = jamlib/jamlib.a
 ZMODEM = Xmodem/libzmodem.a
 
-OBJ = inih/ini.o bbs.o main.o users.o main_menu.o mail_menu.o doors.o bbs_list.o chat_system.o email.o files.o
+OBJ = inih/ini.o bbs.o main.o users.o main_menu.o mail_menu.o doors.o bbs_list.o chat_system.o email.o files.o settings.o
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
