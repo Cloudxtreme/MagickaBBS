@@ -83,6 +83,7 @@ struct bbs_config {
 	
 	char *ansi_path;
 	char *bbs_path;
+	char *log_path;
 	
 	char *default_tagline;
 	
@@ -128,7 +129,7 @@ struct user_record {
 	int timeson;
 };
 
-
+extern void dolog(char *fmt, ...);
 extern void runbbs(int sock, char *config);
 extern struct fido_addr *parse_fido_addr(const char *str);
 extern void s_putchar(int socket, char c);

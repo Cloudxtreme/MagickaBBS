@@ -262,7 +262,9 @@ int door_menu(int socket, struct user_record *user) {
 				{
 					for (i=0;i<conf.door_count;i++) {
 						if (tolower(c) == tolower(conf.doors[i]->key)) {
+							dolog("%s is launched door %s, on node %d", user->loginname, conf.doors[i]->name, mynode);
 							rundoor(socket, user, conf.doors[i]->command, conf.doors[i]->stdio);
+							dolog("%s is returned from door %s, on node %d", user->loginname, conf.doors[i]->name, mynode);
 							break;
 						}
 					}

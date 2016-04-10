@@ -9,4 +9,5 @@ last10.dat
 ansis/*
 config/*
 illusion/*
+logs/*
 *.a

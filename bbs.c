@@ -9,6 +9,7 @@
 #include <signal.h>
 #include <sys/utsname.h>
 #include <sys/time.h>
+#include <stdarg.h>
 #include "inih/ini.h"
 #include "bbs.h"
 
@@ -20,6 +21,34 @@ int gSocket;
 
 int usertimeout;
 int timeoutpaused;
+
+void dolog(char *fmt, ...) {
+	char buffer[512];
+	struct tm time_now;
+	time_t timen;
+	FILE *logfptr;
+	
+	if (conf.log_path == NULL) return;
+	
+	timen = time(NULL);
+	
+	localtime_r(&timen, &time_now);
+	
+	snprintf(buffer, 512, "%s/%04d%02d%02d.log", conf.log_path, time_now.tm_year + 1900, time_now.tm_mon + 1, time_now.tm_mday);
+	logfptr = fopen(buffer, "a");
+    if (!logfptr) {
+		printf("Error opening log file!\n");
+		return;
+	}
+    va_list ap;
+    va_start(ap, fmt);
+    vsnprintf(buffer, 512, fmt, ap);
+    va_end(ap);
+    
+    fprintf(logfptr, "%02d:%02d:%02d %s\n", time_now.tm_hour, time_now.tm_min, time_now.tm_sec, buffer);
+    
+	fclose(logfptr);
+}
 
 struct fido_addr *parse_fido_addr(const char *str) {
 	struct fido_addr *ret = (struct fido_addr *)malloc(sizeof(struct fido_addr));
@@ -322,6 +351,8 @@ static int handler(void* user, const char* section, const char* name,
 			conf->ansi_path = strdup(value);
 		} else if (strcasecmp(name, "bbs path") == 0) {
 			conf->bbs_path = strdup(value);
+		} else if (strcasecmp(name, "log path") == 0) {
+			conf->log_path = strdup(value);
 		}
 	} else if (strcasecmp(section, "mail conferences") == 0) {
 		if (conf->mail_conference_count == 0) {
@@ -512,6 +543,7 @@ void disconnect(int socket) {
 	if (gUser != NULL) {
 		save_user(gUser);
 	}
+	dolog("Node %d disconnected", mynode);
 	sprintf(buffer, "%s/nodeinuse.%d", conf.bbs_path, mynode);
 	remove(buffer);
 	close(socket);
@@ -631,6 +663,7 @@ void runbbs(int socket, char *config_path) {
 	conf.irc_port = 6667;
 	conf.text_file_count = 0;
 	conf.external_editor_cmd = NULL;
+	conf.log_path = NULL;
 	
 	// Load BBS data
 	if (ini_parse(config_path, handler, &conf) <0) {
@@ -751,6 +784,7 @@ void runbbs(int socket, char *config_path) {
 	fclose(nodefile);	
 	
 	// do post-login
+	dolog("%s logged in, on node %d", user->loginname, mynode);
 	// check time left
 	now = time(NULL);
 	localtime_r(&now, &thetime);
@@ -770,7 +804,7 @@ void runbbs(int socket, char *config_path) {
 	while (stat(buffer, &s) == 0) {
 		sprintf(buffer, "bulletin%d", i);
 		s_displayansi(socket, buffer);
-		sprintf(buffer, "Press any key to continue...\r\n");
+		sprintf(buffer, "\e[0mPress any key to continue...\r\n");
 		s_putstring(socket, buffer);
 		s_getc(socket);
 		i++;
@@ -799,6 +833,6 @@ void runbbs(int socket, char *config_path) {
 	main_menu(socket, user);
 	
 	s_displayansi(socket, "goodbye");
-	
+	dolog("%s is logging out, on node %d", user->loginname, mynode);
 	disconnect(socket);
 }
