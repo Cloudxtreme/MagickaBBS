@@ -35,14 +35,14 @@ If you want to install Magicka BBS, follow these steps.
      
 6. Copy the config-default directory to a config directory.
 
-  `cp -r config-default config`
+  `cp -r config_default config`
 
 7. Edit the config files and update essential information, like system paths and BBS name etc
 8. Copy the ansi-default directory to the one specified in your system path
 
   eg.
   
-  `cp -r ansi-default ansi`
+  `cp -r ansi_default ansis`
   
 9. Run Magicka BBS on a port over 1024 (Below require root, and we're not ready for that).
 
