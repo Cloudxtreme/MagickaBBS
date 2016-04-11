@@ -9,7 +9,11 @@ while still retaining the classic BBS feel. ANSI & Telnet, and good old ZModem.
 
 If you want to install Magicka BBS, follow these steps.
 
-1. Ensure you have git, c compiler, sqlite-dev and gnu make
+1. Ensure you have git, c compiler, sqlite3-dev and gnu make
+
+   `sudo apt-get install build-essential libsqlite3-dev git`
+   
+   will work on debian and debian derivatives like raspbian and ubuntu.
 2. Clone the repo `git clone https://github.com/apamment/MagickaBBS`
 3. Build JamLib
 
@@ -18,7 +22,7 @@ If you want to install Magicka BBS, follow these steps.
  
   `make -f Makefile.linux` (Linux) `gmake -f Makefile.linux` (*BSD)
 
-3. Build libzmodem
+4. Build libzmodem
 
   `cd MagickaBBS/Xmodem`
   
