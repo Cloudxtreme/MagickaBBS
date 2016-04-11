@@ -261,6 +261,7 @@ char *external_editor(int socket, struct user_record *user, char *to, char *from
 	FILE *fptr;
 	char *body = NULL;
 	char buffer[256];
+	char buffer2[256];
 	int len;
 	int totlen;
 	char *body2 = NULL;
@@ -359,8 +360,9 @@ char *external_editor(int socket, struct user_record *user, char *to, char *from
 				}
 			}
 			
+			snprintf(buffer, 256, "\r--- MagickaBBS v%d.%d (%s)\r * Origin: %s \r", VERSION_MAJOR, VERSION_MINOR, VERSION_STR, tagline);
 			
-			body2 = (char *)malloc(totlen + 19 + strlen(tagline));
+			body2 = (char *)malloc(totlen + 2 + strlen(buffer));
 			
 			j = 0;
 			
@@ -374,7 +376,7 @@ char *external_editor(int socket, struct user_record *user, char *to, char *from
 				body2[j] = '\0';
 			}
 			
-			sprintf(buffer, "\r---\r * Origin: %s \r", tagline);
+			
 			strcat(body2, buffer);
 			
 			free(body);
@@ -447,8 +449,10 @@ char *editor(int socket, struct user_record *user, char *quote, char *from) {
 					tagline = conf.default_tagline;
 				}
 				
-				size += 18;
-				size += strlen(tagline);
+				snprintf(buffer, 256, "\r--- MagickaBBS v%d.%d (%s)\r * Origin: %s \r", VERSION_MAJOR, VERSION_MINOR, VERSION_STR, tagline);
+				
+				size += 2;
+				size += strlen(buffer);
 				
 				msg = (char *)malloc(size);
 				memset(msg, 0, size);
@@ -458,7 +462,6 @@ char *editor(int socket, struct user_record *user, char *quote, char *from) {
 					free(content[i]);
 				}
 				
-				sprintf(buffer, "\r---\r * Origin: %s \r", tagline);
 				strcat(msg, buffer);
 				
 				free(content);
