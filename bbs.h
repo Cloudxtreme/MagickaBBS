@@ -2,6 +2,8 @@
 #define __BBS_H__
 
 #include <time.h>
+#include "lua/lua.h"
+#include "lua/lauxlib.h"
 
 #define VERSION_MAJOR 0
 #define VERSION_MINOR 2
@@ -84,6 +86,7 @@ struct bbs_config {
 	char *ansi_path;
 	char *bbs_path;
 	char *log_path;
+	char *script_path;
 	
 	char *default_tagline;
 	
@@ -142,7 +145,7 @@ extern void s_readstring(int socket, char *buffer, int max);
 extern char s_getc(int socket);
 extern void disconnect(int socket);
 extern void display_info(int socket);
-extern void display_last10_callers(int socket, struct user_record *user, int record);
+extern void display_last10_callers(int socket, struct user_record *user);
 
 extern int save_user(struct user_record *user);
 extern int check_user(char *loginname);
@@ -171,4 +174,6 @@ extern void list_emails(int socket, struct user_record *user);
 extern int file_menu(int socket, struct user_record *user);
 
 extern void settings_menu(int sock, struct user_record *user);
+
+extern void lua_push_cfunctions(lua_State *L);
 #endif

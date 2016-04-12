@@ -12,6 +12,8 @@
 #include <stdarg.h>
 #include "inih/ini.h"
 #include "bbs.h"
+#include "lua/lua.h"
+#include "lua/lauxlib.h"
 
 int mynode;
 struct bbs_config conf;
@@ -353,6 +355,8 @@ static int handler(void* user, const char* section, const char* name,
 			conf->bbs_path = strdup(value);
 		} else if (strcasecmp(name, "log path") == 0) {
 			conf->log_path = strdup(value);
+		} else if (strcasecmp(name, "script path") == 0) {
+			conf->script_path = strdup(value);
 		}
 	} else if (strcasecmp(section, "mail conferences") == 0) {
 		if (conf->mail_conference_count == 0) {
@@ -550,9 +554,49 @@ void disconnect(int socket) {
 	exit(0);
 }
 
-void display_last10_callers(int socket, struct user_record *user, int record) {
-	struct last10_callers callers[10];
+void record_last10_callers(struct user_record *user) {
 	struct last10_callers new_entry;
+		struct last10_callers callers[10];
+
+	int i,j;
+	char buffer[256];
+	struct tm l10_time;
+	FILE *fptr = fopen("last10.dat", "rb");
+
+	if (fptr != NULL) {
+		for (i=0;i<10;i++) {
+			if (fread(&callers[i], sizeof(struct last10_callers), 1, fptr) < 1) {
+				break;
+			}
+		}
+		fclose(fptr);
+	} else {
+		i = 0;
+	}
+	
+	if (strcasecmp(conf.sysop_name, user->loginname) != 0 ) {
+		memset(&new_entry, 0, sizeof(struct last10_callers));
+		strcpy(new_entry.name, user->loginname);
+		strcpy(new_entry.location, user->location);
+		new_entry.time = time(NULL);
+		
+		if (i == 10) {
+			j = 1;
+		} else {
+			j = 0;
+		}
+		fptr = fopen("last10.dat", "wb");
+		for (;j<i;j++) {
+			fwrite(&callers[j], sizeof(struct last10_callers), 1, fptr);
+		}
+		fwrite(&new_entry, sizeof(struct last10_callers), 1, fptr);
+		fclose(fptr);
+	}
+}
+
+void display_last10_callers(int socket, struct user_record *user) {
+	struct last10_callers callers[10];
+
 	int i,z,j;
 	char buffer[256];
 	struct tm l10_time;
@@ -580,24 +624,6 @@ void display_last10_callers(int socket, struct user_record *user, int record) {
 		s_putstring(socket, buffer);
 	}
 	s_putstring(socket, "\e[1;30m-------------------------------------------------------------------------------\e[0m\r\n");
-	if (strcasecmp(conf.sysop_name, user->loginname) != 0 && record) {
-		memset(&new_entry, 0, sizeof(struct last10_callers));
-		strcpy(new_entry.name, user->loginname);
-		strcpy(new_entry.location, user->location);
-		new_entry.time = time(NULL);
-		
-		if (i == 10) {
-			j = 1;
-		} else {
-			j = 0;
-		}
-		fptr = fopen("last10.dat", "wb");
-		for (;j<i;j++) {
-			fwrite(&callers[j], sizeof(struct last10_callers), 1, fptr);
-		}
-		fwrite(&new_entry, sizeof(struct last10_callers), 1, fptr);
-		fclose(fptr);
-	}
 	sprintf(buffer, "Press any key to continue...\r\n");
 	s_putstring(socket, buffer);
 	s_getc(socket);	
@@ -646,12 +672,13 @@ void runbbs(int socket, char *config_path) {
 	time_t now;
 	struct itimerval itime;
 	struct sigaction sa;
-	
+	lua_State *L;
+	int do_internal_login = 0;
 	
 	write(socket, iac_echo, 3);
 	write(socket, iac_sga, 3);
 
-	
+
 
 	sprintf(buffer, "Magicka BBS v%d.%d (%s), Loading...\r\n", VERSION_MAJOR, VERSION_MINOR, VERSION_STR);
 	s_putstring(socket, buffer);
@@ -664,6 +691,7 @@ void runbbs(int socket, char *config_path) {
 	conf.text_file_count = 0;
 	conf.external_editor_cmd = NULL;
 	conf.log_path = NULL;
+	conf.script_path = NULL;
 	
 	// Load BBS data
 	if (ini_parse(config_path, handler, &conf) <0) {
@@ -783,6 +811,8 @@ void runbbs(int socket, char *config_path) {
 	fputs(user->loginname, nodefile);
 	fclose(nodefile);	
 	
+		
+	
 	// do post-login
 	dolog("%s logged in, on node %d", user->loginname, mynode);
 	// check time left
@@ -797,38 +827,57 @@ void runbbs(int socket, char *config_path) {
 	}		
 	gUser = user;
 	user->timeson++;
-	// bulletins
-	i = 0;
-	sprintf(buffer, "%s/bulletin%d.ans", conf.ansi_path, i);
-	
-	while (stat(buffer, &s) == 0) {
-		sprintf(buffer, "bulletin%d", i);
-		s_displayansi(socket, buffer);
-		sprintf(buffer, "\e[0mPress any key to continue...\r\n");
-		s_putstring(socket, buffer);
-		s_getc(socket);
-		i++;
-		sprintf(buffer, "%s/bulletin%d.ans", conf.ansi_path, i);
-	}
-	
-	// external login cmd
-	
-	// display info
-	display_info(socket);
-	
-	display_last10_callers(socket, user, 1);
-	
-	// check email
-	i = mail_getemailcount(user);
-	if (i > 0) {
-		sprintf(buffer, "\r\nYou have %d e-mail(s) in your inbox.\r\n", i);
-		s_putstring(socket, buffer);
+
+
+	if (conf.script_path != NULL) {
+		sprintf(buffer, "%s/login_stanza.lua", conf.script_path);
+		if (stat(buffer, &s) == 0) {
+			L = luaL_newstate();
+			luaL_openlibs(L);
+			lua_push_cfunctions(L);
+			luaL_dofile(L, buffer);
+			do_internal_login = 0;
+		} else {
+			do_internal_login = 1;
+		}
 	} else {
-		s_putstring(socket, "\r\nYou have no e-mail.\r\n");
+		do_internal_login = 1;
 	}
-	
-	mail_scan(socket, user);
-	
+
+	if (do_internal_login == 1) {
+		// bulletins
+		i = 0;
+		sprintf(buffer, "%s/bulletin%d.ans", conf.ansi_path, i);
+		
+		while (stat(buffer, &s) == 0) {
+			sprintf(buffer, "bulletin%d", i);
+			s_displayansi(socket, buffer);
+			sprintf(buffer, "\e[0mPress any key to continue...\r\n");
+			s_putstring(socket, buffer);
+			s_getc(socket);
+			i++;
+			sprintf(buffer, "%s/bulletin%d.ans", conf.ansi_path, i);
+		}
+		
+		// external login cmd
+		
+		// display info
+		display_info(socket);
+		
+		display_last10_callers(socket, user);
+		
+		// check email
+		i = mail_getemailcount(user);
+		if (i > 0) {
+			sprintf(buffer, "\r\nYou have %d e-mail(s) in your inbox.\r\n", i);
+			s_putstring(socket, buffer);
+		} else {
+			s_putstring(socket, "\r\nYou have no e-mail.\r\n");
+		}
+		
+		mail_scan(socket, user);
+	}
+	record_last10_callers(user);
 	// main menu
 	main_menu(socket, user);
 	

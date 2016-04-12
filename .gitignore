@@ -11,3 +11,5 @@ config/*
 illusion/*
 logs/*
 *.a
+lua/lua
+lua/luac

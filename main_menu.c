@@ -92,7 +92,7 @@ void main_menu(int socket, struct user_record *user) {
 				break;
 			case '1':
 				{
-					display_last10_callers(socket, user, 0);
+					display_last10_callers(socket, user);
 				}
 				break;
 			case 'd':
