@@ -7,6 +7,9 @@
 #include <sys/stat.h>
 #include "jamlib/jam.h"
 #include "bbs.h"
+#include "lua/lua.h"
+#include "lua/lualib.h"
+#include "lua/lauxlib.h"
 
 extern struct bbs_config conf; 
 extern int mynode;
@@ -1080,16 +1083,54 @@ int mail_menu(int socket, struct user_record *user) {
 	char *dest_addr;
 	int to_us;
 	int wwiv_to;
+	struct stat s;
+	int do_internal_menu = 0;
+	char *lRet;
+	lua_State *L;
+	int result;
+	
+	if (conf.script_path != NULL) {
+		sprintf(buffer, "%s/mailmenu.lua", conf.script_path);
+		if (stat(buffer, &s) == 0) {
+			L = luaL_newstate();
+			luaL_openlibs(L);
+			lua_push_cfunctions(L);
+			luaL_loadfile(L, buffer);
+			do_internal_menu = 0;
+			result = lua_pcall(L, 0, 1, 0);
+			if (result) {
+				fprintf(stderr, "Failed to run script: %s\n", lua_tostring(L, -1));
+				do_internal_menu = 1;
+			}
+		} else {
+			do_internal_menu = 1;
+		}
+	} else {
+		do_internal_menu = 1;
+	}
 	
 	while (!domail) {
-		s_displayansi(socket, "mailmenu");
-		
-		
-		sprintf(prompt, "\e[0m\r\nConf: (%d) %s\r\nArea: (%d) %s\r\nTL: %dm :> ", user->cur_mail_conf, conf.mail_conferences[user->cur_mail_conf]->name, user->cur_mail_area, conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->name, user->timeleft);
-		s_putstring(socket, prompt);
-		
-		c = s_getc(socket);
-		
+		if (do_internal_menu == 1) {
+			s_displayansi(socket, "mailmenu");
+			
+			
+			sprintf(prompt, "\e[0m\r\nConf: (%d) %s\r\nArea: (%d) %s\r\nTL: %dm :> ", user->cur_mail_conf, conf.mail_conferences[user->cur_mail_conf]->name, user->cur_mail_area, conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->name, user->timeleft);
+			s_putstring(socket, prompt);
+			
+			c = s_getc(socket);
+		} else {
+			lua_getglobal(L, "menu");
+			result = lua_pcall(L, 0, 1, 0);
+			if (result) {
+				fprintf(stderr, "Failed to run script: %s\n", lua_tostring(L, -1));
+				do_internal_menu = 1;
+				lua_close(L);
+				continue;
+			}
+			lRet = (char *)lua_tostring(L, -1);
+			lua_pop(L, 1);
+			c = lRet[0];
+		}
 		switch(tolower(c)) {
 			case 'p':
 				{
@@ -1556,7 +1597,9 @@ int mail_menu(int socket, struct user_record *user) {
 				break;				
 		}
 	}
-	
+	if (do_internal_menu == 0) {
+		lua_close(L);
+	}
 	return doquit;
 }
 

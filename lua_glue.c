@@ -106,6 +106,30 @@ int l_bbsRunDoor(lua_State *L) {
 	return 0;
 }
 
+int l_bbsTimeLeft(lua_State *L) {
+	lua_pushnumber(L, gUser->timeleft);
+	
+	return 1;
+}
+
+int l_getMailAreaInfo(lua_State *L) {
+	lua_pushnumber(L, gUser->cur_mail_conf);
+	lua_pushstring(L, conf.mail_conferences[gUser->cur_mail_conf]->name);
+	lua_pushnumber(L, gUser->cur_mail_area);
+	lua_pushstring(L, conf.mail_conferences[gUser->cur_mail_conf]->mail_areas[gUser->cur_mail_area]->name);
+	
+	return 4;
+}
+
+int l_getFileAreaInfo(lua_State *L) {
+	lua_pushnumber(L, gUser->cur_file_dir);
+	lua_pushstring(L, conf.file_directories[gUser->cur_file_dir]->name);
+	lua_pushnumber(L, gUser->cur_file_sub);
+	lua_pushstring(L, conf.file_directories[gUser->cur_file_dir]->file_subs[gUser->cur_file_sub]->name);
+	
+	return 4;
+}
+
 void lua_push_cfunctions(lua_State *L) {
 	lua_pushcfunction(L, l_bbsWString);
 	lua_setglobal(L, "bbs_write_string");
@@ -127,4 +151,10 @@ void lua_push_cfunctions(lua_State *L) {
 	lua_setglobal(L, "bbs_mail_scan");
 	lua_pushcfunction(L, l_bbsRunDoor);
 	lua_setglobal(L, "bbs_run_door");
+	lua_pushcfunction(L, l_bbsTimeLeft);
+	lua_setglobal(L, "bbs_time_left");
+	lua_pushcfunction(L, l_getMailAreaInfo);
+	lua_setglobal(L, "bbs_cur_mailarea_info");	
+	lua_pushcfunction(L, l_getFileAreaInfo);
+	lua_setglobal(L, "bbs_cur_filearea_info");		
 }

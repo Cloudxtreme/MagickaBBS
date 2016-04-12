@@ -9,7 +9,9 @@
 #include <errno.h>
 #include "Xmodem/zmodem.h"
 #include "bbs.h"
-
+#include "lua/lua.h"
+#include "lua/lualib.h"
+#include "lua/lauxlib.h"
 extern struct bbs_config conf;
 
 static int doCancel = 0;
@@ -585,14 +587,53 @@ int file_menu(int socket, struct user_record *user) {
 	int i;
 	int j;
 	char prompt[256];
+	struct stat s;
+	int do_internal_menu = 0;
+	char *lRet;
+	lua_State *L;
+	int result;
+	
+	if (conf.script_path != NULL) {
+		sprintf(prompt, "%s/filemenu.lua", conf.script_path);
+		if (stat(prompt, &s) == 0) {
+			L = luaL_newstate();
+			luaL_openlibs(L);
+			lua_push_cfunctions(L);
+			luaL_loadfile(L, prompt);
+			do_internal_menu = 0;
+			result = lua_pcall(L, 0, 1, 0);
+			if (result) {
+				fprintf(stderr, "Failed to run script: %s\n", lua_tostring(L, -1));
+				do_internal_menu = 1;
+			}
+		} else {
+			do_internal_menu = 1;
+		}
+	} else {
+		do_internal_menu = 1;
+	}
 	
 	while (!dofiles) {
-		s_displayansi(socket, "filemenu");
-		
-		sprintf(prompt, "\e[0m\r\nDir: (%d) %s\r\nSub: (%d) %s\r\nTL: %dm :> ", user->cur_file_dir, conf.file_directories[user->cur_file_dir]->name, user->cur_file_sub, conf.file_directories[user->cur_file_dir]->file_subs[user->cur_file_sub]->name, user->timeleft);
-		s_putstring(socket, prompt);
-		
-		c = s_getc(socket);
+		if (do_internal_menu == 1) {
+			s_displayansi(socket, "filemenu");
+			
+			sprintf(prompt, "\e[0m\r\nDir: (%d) %s\r\nSub: (%d) %s\r\nTL: %dm :> ", user->cur_file_dir, conf.file_directories[user->cur_file_dir]->name, user->cur_file_sub, conf.file_directories[user->cur_file_dir]->file_subs[user->cur_file_sub]->name, user->timeleft);
+			s_putstring(socket, prompt);
+			
+			c = s_getc(socket);
+		} else {
+			lua_getglobal(L, "menu");
+			result = lua_pcall(L, 0, 1, 0);
+			if (result) {
+				fprintf(stderr, "Failed to run script: %s\n", lua_tostring(L, -1));
+				do_internal_menu = 1;
+				lua_close(L);
+				continue;
+			}
+			lRet = (char *)lua_tostring(L, -1);
+			lua_pop(L, 1);
+			c = lRet[0];			
+		}
 		switch(tolower(c)) {
 			case 'i':
 				{
@@ -733,6 +774,9 @@ int file_menu(int socket, struct user_record *user) {
 				}
 				break;
 		}
+	}
+	if (do_internal_menu == 0) {
+		lua_close(L);
 	}
 	return doquit;
 }

@@ -4,6 +4,9 @@
 #include <ctype.h>
 #include <sys/stat.h>
 #include "bbs.h"
+#include "lua/lua.h"
+#include "lua/lualib.h"
+#include "lua/lauxlib.h"
 
 extern struct bbs_config conf; 
 
@@ -14,14 +17,54 @@ void main_menu(int socket, struct user_record *user) {
 	char buffer[256];
 	int i;
 	struct stat s;
+	int do_internal_menu = 0;
+	char *lRet;
+	lua_State *L;
+	int result;
+	
+	if (conf.script_path != NULL) {
+		sprintf(buffer, "%s/mainmenu.lua", conf.script_path);
+		if (stat(buffer, &s) == 0) {
+			L = luaL_newstate();
+			luaL_openlibs(L);
+			lua_push_cfunctions(L);
+			luaL_loadfile(L, buffer);
+			do_internal_menu = 0;
+			result = lua_pcall(L, 0, 1, 0);
+			if (result) {
+				fprintf(stderr, "Failed to run script: %s\n", lua_tostring(L, -1));
+				do_internal_menu = 1;
+			}
+		} else {
+			do_internal_menu = 1;
+		}
+	} else {
+		do_internal_menu = 1;
+	}
+	
 	while (!doquit) {
-		s_displayansi(socket, "mainmenu");
+		
+		if (do_internal_menu == 1) {
+			s_displayansi(socket, "mainmenu");
 		
 		
-		sprintf(prompt, "\r\n\e[0mTL: %dm :> ", user->timeleft);
-		s_putstring(socket, prompt);
+			sprintf(prompt, "\r\n\e[0mTL: %dm :> ", user->timeleft);
+			s_putstring(socket, prompt);
 		
-		c = s_getc(socket);
+			c = s_getc(socket);
+		} else {
+			lua_getglobal(L, "menu");
+			result = lua_pcall(L, 0, 1, 0);
+			if (result) {
+				fprintf(stderr, "Failed to run script: %s\n", lua_tostring(L, -1));
+				do_internal_menu = 1;
+				lua_close(L);
+				continue;
+			}
+			lRet = (char *)lua_tostring(L, -1);
+			lua_pop(L, 1);
+			c = lRet[0];
+		}
 		
 		switch(tolower(c)) {
 			case 'a':
@@ -125,5 +168,8 @@ void main_menu(int socket, struct user_record *user) {
 				}
 				break;
 		}
+	}
+	if (do_internal_menu == 0) {
+		lua_close(L);
 	}
 }

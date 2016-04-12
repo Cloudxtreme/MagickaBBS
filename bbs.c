@@ -13,6 +13,7 @@
 #include "inih/ini.h"
 #include "bbs.h"
 #include "lua/lua.h"
+#include "lua/lualib.h"
 #include "lua/lauxlib.h"
 
 int mynode;
@@ -836,6 +837,7 @@ void runbbs(int socket, char *config_path) {
 			luaL_openlibs(L);
 			lua_push_cfunctions(L);
 			luaL_dofile(L, buffer);
+			lua_close(L);
 			do_internal_login = 0;
 		} else {
 			do_internal_login = 1;
