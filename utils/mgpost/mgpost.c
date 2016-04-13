@@ -40,15 +40,23 @@ int main(int argc, char **argv) {
 	s_JamSubPacket* jsp;
 	s_JamSubfield jsf;
 	
-	if (argc < 5) {
+	if (argc < 6) {
 		printf("Usage:\n");
-		printf("%s filename jambase from subject\n", argv[0]);
+		printf("%s [l|e] filename jambase from subject\n", argv[0]);
+		printf(" l = Local Message, e = Echomail Message\n");
 		exit(1);
 	}
-	fptr = fopen(argv[1], "r");
+	if (tolower(argv[1][0]) != 'l' && tolower(argv[1][0]) != 'e') {
+		printf("Usage:\n");
+		printf("%s [l|e] filename jambase from subject\n", argv[0]);
+		printf(" l = Local Message, e = Echomail Message\n");
+		exit(1);
+	}
+	
+	fptr = fopen(argv[2], "r");
 	
 	if (!fptr) {
-		printf("Unable to open %s\n", argv[1]);
+		printf("Unable to open %s\n", argv[2]);
 		exit(1);
 	}
 	body = NULL;
@@ -69,7 +77,7 @@ int main(int argc, char **argv) {
 	
 	fclose(fptr);
 	
-	jb = open_jam_base(argv[2]);
+	jb = open_jam_base(argv[3]);
 	if (!jb) {
 		printf("Unable to open JAM base %s\n", argv[2]);
 		exit(1);
@@ -78,14 +86,18 @@ int main(int argc, char **argv) {
 	
 	JAM_ClearMsgHeader( &jmh );
 	jmh.DateWritten = thetime;
-										
-	jmh.Attribute |= MSG_TYPELOCAL;
+	
+	if (tolower(argv[1][0]) == 'l') {
+		jmh.Attribute |= MSG_TYPELOCAL;
+	} else if (tolower(argv[1][0]) == 'e') {
+		jmh.Attribute |= MSG_TYPEECHO;
+	}
 			
 	jsp = JAM_NewSubPacket();
 	jsf.LoID   = JAMSFLD_SENDERNAME;
 	jsf.HiID   = 0;
-	jsf.DatLen = strlen(argv[3]);
-	jsf.Buffer = (char *)argv[3];
+	jsf.DatLen = strlen(argv[4]);
+	jsf.Buffer = (char *)argv[4];
 	JAM_PutSubfield(jsp, &jsf);
 
 	jsf.LoID   = JAMSFLD_RECVRNAME;
@@ -96,8 +108,8 @@ int main(int argc, char **argv) {
 										
 	jsf.LoID   = JAMSFLD_SUBJECT;
 	jsf.HiID   = 0;
-	jsf.DatLen = strlen(argv[4]);
-	jsf.Buffer = (char *)argv[4];
+	jsf.DatLen = strlen(argv[5]);
+	jsf.Buffer = (char *)argv[5];
 	JAM_PutSubfield(jsp, &jsf);
 			
 	while (1) {
