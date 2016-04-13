@@ -108,6 +108,7 @@ void show_email(int socket, struct user_record *user, int msgno) {
     char *sql = "SELECT id,sender,subject,body,date FROM email WHERE recipient LIKE ? LIMIT ?, 1";
     char *dsql = "DELETE FROM email WHERE id=?";
     char *isql = "INSERT INTO email (sender, recipient, subject, body, date, seen) VALUES(?, ?, ?, ?, ?, 0)";
+    char *ssql = "UPDATE email SET seen=1 WHERE id=?";
 	int id;
 	char *sender;
 	char *subject;
@@ -180,11 +181,22 @@ void show_email(int socket, struct user_record *user, int msgno) {
 			}
 		}
 		
+		sqlite3_finalize(res);
 
+		rc = sqlite3_prepare_v2(db, ssql, -1, &res, 0);
+    
+		if (rc == SQLITE_OK) {    
+			sqlite3_bind_int(res, 1, id);
+		} else {
+			fprintf(stderr, "Failed to execute statement: %s\n", sqlite3_errmsg(db));
+			sqlite3_finalize(res);
+			sqlite3_close(db);	
+			return;
+		}
+		sqlite3_step(res);
 		
 		s_putstring(socket, "Press R to reply, D to delete Enter to quit...\r\n");
 		c = s_getc(socket);
-		sqlite3_finalize(res);
 		if (tolower(c) == 'r') {		
 			if (subject != NULL) {
 				if (strncasecmp(buffer, "RE:", 3) != 0) {
