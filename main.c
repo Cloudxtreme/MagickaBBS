@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <arpa/inet.h>
+#include <string.h>
 #include "bbs.h"
 
 void sigchld_handler(int s)
@@ -72,7 +73,7 @@ int main(int argc, char **argv) {
 		
 		if (pid == 0) {
 			close(socket_desc);
-			runbbs(client_sock, argv[1]);
+			runbbs(client_sock, argv[1], strdup(inet_ntoa(client.sin_addr)));
 			
 			exit(0);
 		} else {

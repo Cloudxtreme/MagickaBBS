@@ -133,7 +133,7 @@ struct user_record {
 };
 
 extern void dolog(char *fmt, ...);
-extern void runbbs(int sock, char *config);
+extern void runbbs(int sock, char *config, char *ipaddress);
 extern struct fido_addr *parse_fido_addr(const char *str);
 extern void s_putchar(int socket, char c);
 extern void s_putstring(int socket, char *c);

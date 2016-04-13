@@ -25,6 +25,8 @@ int gSocket;
 int usertimeout;
 int timeoutpaused;
 
+char *ipaddress;
+
 void dolog(char *fmt, ...) {
 	char buffer[512];
 	struct tm time_now;
@@ -48,7 +50,7 @@ void dolog(char *fmt, ...) {
     vsnprintf(buffer, 512, fmt, ap);
     va_end(ap);
     
-    fprintf(logfptr, "%02d:%02d:%02d %s\n", time_now.tm_hour, time_now.tm_min, time_now.tm_sec, buffer);
+    fprintf(logfptr, "%02d:%02d:%02d [%s] %s\n", time_now.tm_hour, time_now.tm_min, time_now.tm_sec, ipaddress, buffer);
     
 	fclose(logfptr);
 }
@@ -658,7 +660,7 @@ void display_info(int socket) {
 	s_getc(socket);
 }
 
-void runbbs(int socket, char *config_path) {
+void runbbs(int socket, char *config_path, char *ip) {
 	char buffer[256];
 	char password[17];
 
@@ -675,6 +677,8 @@ void runbbs(int socket, char *config_path) {
 	struct sigaction sa;
 	lua_State *L;
 	int do_internal_login = 0;
+	
+	ipaddress = ip;
 	
 	write(socket, iac_echo, 3);
 	write(socket, iac_sga, 3);
