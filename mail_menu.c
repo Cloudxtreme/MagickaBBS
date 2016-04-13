@@ -419,11 +419,14 @@ char *editor(int socket, struct user_record *user, char *quote, char *from) {
 	int z;
 	char *tagline;
 
+	char next_line_buffer[80];
+
+	memset(next_line_buffer, 0, 80);
 
 	if (quote != NULL) {
+		//wrap(quote, 65);
 		for (i=0;i<strlen(quote);i++) {
-			
-			if (quote[i] == '\r' || lineat == 68) {
+			if (quote[i] == '\r' || lineat == 67) {
 				if (quotelines == 0) {
 					quotecontent = (char **)malloc(sizeof(char *));
 				} else {
@@ -448,10 +451,25 @@ char *editor(int socket, struct user_record *user, char *quote, char *from) {
 	s_putstring(socket, "\e[1;30m-------------------------------------------------------------------------------\e[0m");
 	
 	while(!doquit) {
-		sprintf(prompt, "\r\n\e[1;30m[\e[1;34m%3d\e[1;30m]: \e[0m", lines);
+		sprintf(prompt, "\r\n\e[1;30m[\e[1;34m%3d\e[1;30m]: \e[0m%s", lines, next_line_buffer);
 		s_putstring(socket, prompt);
-		s_readstring(socket, linebuffer, 70);
-		if (linebuffer[0] == '/') {
+		strcpy(linebuffer, next_line_buffer);
+		s_readstring(socket, &linebuffer[strlen(next_line_buffer)], 70 - strlen(next_line_buffer));
+		memset(next_line_buffer, 0, 70);
+
+		if (strlen(linebuffer) == 70 && linebuffer[69] != ' ') {
+			for (i=strlen(linebuffer) - 1;i > 15;i--) {
+				if (linebuffer[i] == ' ') {
+					linebuffer[i] = '\0';
+					strcpy(next_line_buffer, &linebuffer[i+1]);
+					sprintf(prompt, "\e[%dD\e[0K", 70 - i);
+					s_putstring(socket, prompt);
+					break;
+				}
+			}
+		}
+		
+		if (linebuffer[0] == '/' && strlen(linebuffer) == 2) {
 			if (toupper(linebuffer[1]) == 'S') {
 				for (i=0;i<lines;i++) {
 					size += strlen(content[i]) + 1;
