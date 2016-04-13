@@ -482,8 +482,20 @@ char *editor(int socket, struct user_record *user, char *quote, char *from) {
 					tagline = conf.default_tagline;
 				}
 				
-				snprintf(buffer, 256, "\r--- MagickaBBS v%d.%d (%s)\r * Origin: %s \r", VERSION_MAJOR, VERSION_MINOR, VERSION_STR, tagline);
-				
+				if (conf.mail_conferences[user->cur_mail_conf]->nettype == NETWORK_FIDO) {
+					if (conf.mail_conferences[user->cur_mail_conf]->fidoaddr->point == 0) {
+						snprintf(buffer, 256, "\r--- MagickaBBS v%d.%d (%s)\r * Origin: %s (%d:%d/%d)\r", VERSION_MAJOR, VERSION_MINOR, VERSION_STR, tagline, conf.mail_conferences[user->cur_mail_conf]->fidoaddr->zone,
+																																							  conf.mail_conferences[user->cur_mail_conf]->fidoaddr->net,
+																																							  conf.mail_conferences[user->cur_mail_conf]->fidoaddr->node);
+					} else {
+						snprintf(buffer, 256, "\r--- MagickaBBS v%d.%d (%s)\r * Origin: %s (%d:%d/%d.%d)\r", VERSION_MAJOR, VERSION_MINOR, VERSION_STR, tagline, conf.mail_conferences[user->cur_mail_conf]->fidoaddr->zone,
+																																							  conf.mail_conferences[user->cur_mail_conf]->fidoaddr->net,
+																																							  conf.mail_conferences[user->cur_mail_conf]->fidoaddr->node,
+																																							  conf.mail_conferences[user->cur_mail_conf]->fidoaddr->point);
+					}
+				} else {
+					snprintf(buffer, 256, "\r--- MagickaBBS v%d.%d (%s)\r * Origin: %s \r", VERSION_MAJOR, VERSION_MINOR, VERSION_STR, tagline);
+				}				
 				size += 2;
 				size += strlen(buffer);
 				
@@ -824,6 +836,27 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 				}
 				subject = (char *)malloc(strlen(buffer) + 1);
 				strcpy(subject, buffer);
+				
+				sprintf(buffer, "\r\n\r\nReplying to: %s\r\n", subject);
+				s_putstring(socket, buffer);
+				s_putstring(socket, "Change Subject? (Y/N) ");
+				
+				c = s_getc(socket);
+				
+				if (tolower(c) == 'y') {
+					s_putstring(socket, "\r\nNew subject: ");
+					s_readstring(socket, buffer, 25);
+					
+					if (strlen(buffer) == 0) {
+						s_putstring(socket, "\r\nOk, not changing the subject line...");
+					} else {
+						free(subject);
+						subject = (char *)malloc(strlen(buffer) + 1);
+						strcpy(subject, buffer);
+					}
+				}
+				s_putstring(socket, "\r\n");
+				
 				if (msghs->msgs[mailno]->from != NULL) {
 					strcpy(buffer, msghs->msgs[mailno]->from);
 				}
