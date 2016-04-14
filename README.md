@@ -4,12 +4,16 @@ Linux/FreeBSD bulletin board system (Should also work on NetBSD and OpenBSD, if 
 As I lost the code to my initial BBS flea, I've decided to start over from scratch and this time I'm using git hub so I dont
 lose it again!
 
-Magicka is meant to be a modern (haha) BBS system, using modern technologies, like Sqlite, IRC, long filenames (gasp!) etc
+Magicka is meant to be a modern (haha) BBS system, using modern technologies, like Sqlite3, IRC, long filenames (gasp!) etc
 while still retaining the classic BBS feel. ANSI & Telnet, and good old ZModem.
 
 If you want to install Magicka BBS, follow these steps.
 
-1. Ensure you have git, c compiler, sqlite-dev and gnu make
+1. Ensure you have git, c compiler, libsqlite3-dev, libreadline-dev and gnu make
+   
+   `sudo apt-get install build-essential libsqlite3-dev libreadline-dev git`
+   
+   should work on debian and debian derivatives.
 2. Clone the repo `git clone https://github.com/apamment/MagickaBBS`
 3. Build JamLib
 
