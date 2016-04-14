@@ -1,6 +1,6 @@
 .  .          .       .__ .__  __.
 |\/| _. _ * _.;_/ _.  [__)[__)(__ 
-|  |(_](_]|(_.| \(_]  [__)[__).__) v0.1 a2
+|  |(_](_]|(_.| \(_]  [__)[__).__) v0.2a1
 -------._|----------------------------------
 Magicka BBS is a Free BBS System for Linux
 and FreeBSD. While Still in the early stages 
@@ -13,6 +13,7 @@ you find in modern BBS software.
     for doors.
   * External Editor Support
   * Compiles and runs on Raspberry Pi
+  * LUA Scripting Support
   * Some other stuff I forgot.
   
 THIS IS ALPHA SOFTWARE! If you're looking
