@@ -34,6 +34,7 @@ int main(int argc, char **argv) {
 	int totlen;
 	time_t thetime;
 	int z;
+	int i;
 	
 	s_JamBase *jb;
 	s_JamMsgHeader jmh;
@@ -42,14 +43,24 @@ int main(int argc, char **argv) {
 	
 	if (argc < 6) {
 		printf("Usage:\n");
-		printf("%s [l|e] filename jambase from subject\n", argv[0]);
+		printf("%s [l|e] filename jambase from subject laddress\n", argv[0]);
 		printf(" l = Local Message, e = Echomail Message\n");
+		printf(" laddress is your network address, and only required on echomail.\n");
 		exit(1);
 	}
 	if (tolower(argv[1][0]) != 'l' && tolower(argv[1][0]) != 'e') {
 		printf("Usage:\n");
 		printf("%s [l|e] filename jambase from subject\n", argv[0]);
 		printf(" l = Local Message, e = Echomail Message\n");
+		printf(" laddress is your network address, and only required on echomail.\n");
+		exit(1);
+	}
+	
+	if (tolower(argv[1][0]) == 'e' && argc < 7) {
+		printf("Usage:\n");
+		printf("%s [l|e] filename jambase from subject\n", argv[0]);
+		printf(" l = Local Message, e = Echomail Message\n");
+		printf(" laddress is your network address, and only required on echomail.\n");
 		exit(1);
 	}
 	
@@ -76,6 +87,12 @@ int main(int argc, char **argv) {
 	}
 	
 	fclose(fptr);
+	
+	for (i=0;i<totlen;i++) {
+		if (body[i] == '\n') {
+			body[i] = '\r';
+		}
+	}
 	
 	jb = open_jam_base(argv[3]);
 	if (!jb) {
@@ -111,7 +128,15 @@ int main(int argc, char **argv) {
 	jsf.DatLen = strlen(argv[5]);
 	jsf.Buffer = (char *)argv[5];
 	JAM_PutSubfield(jsp, &jsf);
-			
+	
+	if (tolower(argv[1][0]) == 'e') {
+		jsf.LoID   = JAMSFLD_OADDRESS;
+		jsf.HiID   = 0;
+		jsf.DatLen = strlen(argv[6]);
+		jsf.Buffer = (char *)argv[6];
+		JAM_PutSubfield(jsp, &jsf);
+	}
+	
 	while (1) {
 		z = JAM_LockMB(jb, 100);
 		if (z == 0) {
