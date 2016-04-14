@@ -104,6 +104,8 @@ int main(int argc, char **argv) {
 	JAM_ClearMsgHeader( &jmh );
 	jmh.DateWritten = thetime;
 	
+	jmh.Attribute |= MSG_LOCAL;
+	
 	if (tolower(argv[1][0]) == 'l') {
 		jmh.Attribute |= MSG_TYPELOCAL;
 	} else if (tolower(argv[1][0]) == 'e') {
