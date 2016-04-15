@@ -957,12 +957,12 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 							jsf.Buffer = (char *)buffer;
 							JAM_PutSubfield(jsp, &jsf);
 							
-							if (msgid != NULL) {
+							if (msghs->msgs[mailno]->msgid != NULL) {
 								sprintf(buffer, "%d:%d/%d.%d %s", conf.mail_conferences[user->cur_mail_conf]->fidoaddr->zone,
 										conf.mail_conferences[user->cur_mail_conf]->fidoaddr->net,
 										conf.mail_conferences[user->cur_mail_conf]->fidoaddr->node,
 										conf.mail_conferences[user->cur_mail_conf]->fidoaddr->point,
-										&msgid[strlen(timestr) - 8]);	
+										&msghs->msgs[mailno]->msgid[strlen(timestr) - 8]);	
 							}
 							
 							jsf.LoID   = JAMSFLD_REPLYID;
