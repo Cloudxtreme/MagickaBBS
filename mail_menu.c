@@ -278,6 +278,12 @@ char *external_editor(int socket, struct user_record *user, char *to, char *from
 		c = s_getc(socket);
 		if (tolower(c) == 'y') {
 			
+			sprintf(buffer, "%s/node%d", conf.bbs_path, mynode);
+	
+			if (stat(buffer, &s) != 0) {
+				mkdir(buffer, 0755);
+			}
+			
 			sprintf(buffer, "%s/node%d/MSGTMP", conf.bbs_path, mynode);
 			
 			if (stat(buffer, &s) == 0) {
