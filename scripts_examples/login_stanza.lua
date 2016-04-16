@@ -6,8 +6,7 @@ function file_exists(name)
    if f~=nil then io.close(f) return true else return false end
 end
 
-bbs_write_string("\r\n\r\nHello World! - This is a LUA Login Stanza script\r\n");
-bbs_write_string("Do you want a quick login? (Y/N) : ");
+bbs_write_string("\r\n\r\nDo you want a quick login? (Y/N) : ");
 
 local char = bbs_read_char();
 
@@ -33,11 +32,11 @@ end
 -- Display Info
 bbs_write_string("\027[1;37mSystem Information\r\n");
 bbs_write_string("\027[1;30m----------------------------------------------\r\n");
-bbs_write_string("\027[1;32mBBS Name    : \027[1;37mA Magicka BBS\r\n");
-bbs_write_string("\027[1;32mSysOp Name  : \027[1;37mThe Sysop\r\n");
+bbs_write_string("\027[1;32mBBS Name    : \027[1;37mCauldron BBS\r\n");
+bbs_write_string("\027[1;32mSysOp Name  : \027[1;37mAndrew\r\n");
 bbs_write_string("\027[1;32mNode        : \027[1;37m" .. string.format("%d", bbs_node()) .. "\r\n");
 bbs_write_string("\027[1;32mBBS Version : \027[1;37m" .. bbs_version() .. "\r\n");
-bbs_write_string("\027[1;32mSystem      : \027[1;37mA cray supercomputer!\r\n");
+bbs_write_string("\027[1;32mSystem      : \027[1;37mA Banana PI!\r\n");
 bbs_write_string("\027[1;30m----------------------------------------------\r\n");
 bbs_write_string("\027[0mPress any key to continue...\r\n");
 bbs_read_char();
