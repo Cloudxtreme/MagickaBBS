@@ -99,6 +99,7 @@ struct bbs_config {
 	
 	int nodes;
 	int newuserlvl;
+	int automsgwritelvl;
 	int mail_conference_count;
 	struct mail_conference **mail_conferences;
 	int door_count;
@@ -132,6 +133,8 @@ struct user_record {
 	int timeson;
 };
 
+extern void automessage_write(int socket, struct user_record *user);
+extern void automessage_display(int socket);
 extern void dolog(char *fmt, ...);
 extern void runbbs(int sock, char *config, char *ipaddress);
 extern struct fido_addr *parse_fido_addr(const char *str);

@@ -350,6 +350,8 @@ static int handler(void* user, const char* section, const char* name,
 			} else {
 				conf->external_editor_stdio = 0;
 			}
+		} else if (strcasecmp(name, "automessage write level") == 0) {
+			conf->automsgwritelvl = atoi(value);
 		}
 	} else if (strcasecmp(section, "paths") == 0){
 		if (strcasecmp(name, "ansi path") == 0) {
@@ -660,6 +662,72 @@ void display_info(int socket) {
 	s_getc(socket);
 }
 
+void automessage_write(int socket, struct user_record *user) {
+	FILE *fptr;
+	char automsg[450];
+	char buffer[90];
+	int i;
+	struct tm timenow;
+	time_t timen;
+	
+	memset(automsg, 0, 450);
+	memset(buffer, 0, 90);
+	
+	if (user->sec_level >= conf.automsgwritelvl) {
+		timen = time(NULL);
+		localtime_r(&timen, &timenow);
+		
+		sprintf(automsg, "Posted by %s @ %s", user->loginname, asctime(&timenow));
+		
+		automsg[strlen(automsg) - 1] = '\r';
+		automsg[strlen(automsg)] = '\n';
+		
+		for (i=0;i<4;i++) {
+			sprintf(buffer, "\r\n%d: ", i);
+			s_putstring(socket, buffer);
+			s_readstring(socket, buffer, 75);
+			strcat(automsg, buffer);
+			strcat(automsg, "\r\n");
+		}
+		
+		fptr = fopen("automessage.txt", "w");
+		if (fptr) {
+			fwrite(automsg, strlen(automsg), 1, fptr);
+			fclose(fptr);
+		} else {
+			printf("Unable to open automessage.txt for writing\n");
+		}
+	} 
+}
+
+void automessage_display(int socket) {
+	struct stat s;
+	FILE *fptr;
+	char buffer[90];
+	int i;
+	s_putstring(socket, "\r\n\r\n");
+	if (stat("automessage.txt", &s) == 0) {
+		fptr = fopen("automessage.txt", "r");
+		if (fptr) {
+			for (i=0;i<5;i++) {
+				memset(buffer, 0, 90);
+				fgets(buffer, 88, fptr);
+				buffer[strlen(buffer) - 1] = '\r';
+				buffer[strlen(buffer)] = '\n';
+				
+				s_putstring(socket, buffer);
+			}
+			fclose(fptr);
+		} else {
+			printf("Error opening automessage.txt\n");
+		} 
+	} else {
+		s_putstring(socket, "No automessage!\r\n");
+	}
+	s_putstring(socket, "\e[0mPress any key to continue...\r\n");
+	s_getc(socket);	
+}
+
 void runbbs(int socket, char *config_path, char *ip) {
 	char buffer[256];
 	char password[17];
@@ -697,6 +765,7 @@ void runbbs(int socket, char *config_path, char *ip) {
 	conf.external_editor_cmd = NULL;
 	conf.log_path = NULL;
 	conf.script_path = NULL;
+	conf.automsgwritelvl = 10;
 	
 	// Load BBS data
 	if (ini_parse(config_path, handler, &conf) <0) {
@@ -882,6 +951,8 @@ void runbbs(int socket, char *config_path, char *ip) {
 		}
 		
 		mail_scan(socket, user);
+		
+		automessage_display(socket);
 	}
 	record_last10_callers(user);
 	// main menu

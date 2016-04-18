@@ -112,6 +112,11 @@ int l_bbsTimeLeft(lua_State *L) {
 	return 1;
 }
 
+int l_bbsDisplayAutoMsg(lua_State *L) {
+	automessage_display(gSocket);
+	return 0;
+}
+
 int l_getMailAreaInfo(lua_State *L) {
 	lua_pushnumber(L, gUser->cur_mail_conf);
 	lua_pushstring(L, conf.mail_conferences[gUser->cur_mail_conf]->name);
@@ -157,4 +162,6 @@ void lua_push_cfunctions(lua_State *L) {
 	lua_setglobal(L, "bbs_cur_mailarea_info");	
 	lua_pushcfunction(L, l_getFileAreaInfo);
 	lua_setglobal(L, "bbs_cur_filearea_info");		
+	lua_pushcfunction(L, l_bbsDisplayAutoMsg);
+	lua_setglobal(L, "bbs_display_automsg");
 }

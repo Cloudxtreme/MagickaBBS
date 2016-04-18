@@ -67,6 +67,11 @@ void main_menu(int socket, struct user_record *user) {
 		}
 		
 		switch(tolower(c)) {
+			case 'o':
+				{
+					automessage_write(socket, user);
+				}
+				break;
 			case 'a':
 				{
 					if (conf.text_file_count > 0) {
