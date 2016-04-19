@@ -677,11 +677,11 @@ void automessage_write(int socket, struct user_record *user) {
 		timen = time(NULL);
 		localtime_r(&timen, &timenow);
 		
-		sprintf(automsg, "Posted by %s @ %s", user->loginname, asctime(&timenow));
+		sprintf(automsg, "Automessage Posted by %s @ %s", user->loginname, asctime(&timenow));
 		
 		automsg[strlen(automsg) - 1] = '\r';
 		automsg[strlen(automsg)] = '\n';
-		
+		s_putstring(socket, "\r\nEnter your message (4 lines):\r\n");
 		for (i=0;i<4;i++) {
 			sprintf(buffer, "\r\n%d: ", i);
 			s_putstring(socket, buffer);
