@@ -810,7 +810,7 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 				chars = 0;
 				s_putstring(socket, "\r\n");
 				lines++;
-				if (lines == 17) {
+				if (lines >= 17) {
 					s_putstring(socket, "Press a key to continue...");
 					s_getc(socket);
 					lines = 0;
@@ -856,7 +856,7 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 						j = 1;
 					}					
 					for (i=0;i<j;i++) {
-						if (lines + 1 <= 17) {
+						if (lines + 1 < 17) {
 							s_putstring(socket, "\e[B");
 							lines++;
 						} else {
