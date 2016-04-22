@@ -748,9 +748,9 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 			sprintf(buffer, "\e[2J\e[1;32mFrom    : \e[1;37m%s\r\n", msghs->msgs[mailno]->from);
 		}
 		s_putstring(socket, buffer);
-		sprintf(buffer, "\e[1;32mTo      : \e[1;37m%s\r\n", msghs->msgs[mailno]->to);
+		sprintf(buffer, "\e[1;32mTo      : \e[1;37m%-40s Area     : %-37s\r\n", msghs->msgs[mailno]->to, conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->name);
 		s_putstring(socket, buffer);
-		sprintf(buffer, "\e[1;32mSubject : \e[1;37m%s\r\n", msghs->msgs[mailno]->subject);
+		sprintf(buffer, "\e[1;32mSubject : \e[1;37m%-40s MsgNo    : %4d of %4d\r\n", msghs->msgs[mailno]->subject, mailno, msghs->msg_count);
 		s_putstring(socket, buffer);
 		localtime_r((time_t *)&msghs->msgs[mailno]->msg_h->DateWritten, &msg_date);
 		sprintf(buffer, "\e[1;32mDate    : \e[1;37m%s", asctime(&msg_date));
@@ -811,7 +811,7 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 				s_putstring(socket, "\r\n");
 				lines++;
 				if (lines >= 17) {
-					s_putstring(socket, "Press a key to continue...");
+					s_putstring(socket, "\e[1;37mPress a key to continue...\e[0m");
 					s_getc(socket);
 					lines = 0;
 					s_putstring(socket, "\e[7;1H\e[0J");
@@ -883,7 +883,7 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 			}
 		}
 
-		s_putstring(socket, "Press R to reply, Q to quit, SPACE for Next Mesage...");
+		s_putstring(socket, "\r\n\e[1;37mPress \e[1;36mR \e[1;37mto reply, \e[1;36mQ \e[1;37mto quit, \e[1;36mB \e[1;37mto go Back, \e[1;36mSPACE \e[1;37mfor Next Mesage...");
 		
 		c = s_getc(socket);
 		
@@ -1167,6 +1167,10 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 			if (mailno >= msghs->msg_count) {
 				s_putstring(socket, "\r\n\r\nNo more messages\r\n");
 				doquit = 1;
+			}
+		} else if (tolower(c) == 'b') {
+			if (mailno > 0) {
+				mailno--;
 			}
 		}
 	}

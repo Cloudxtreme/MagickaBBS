@@ -283,7 +283,7 @@ void list_users(int socket, struct user_record *user) {
         sqlite3_close(db);
         exit(1);
     }
-    s_putstring(socket, "\r\n\e[1;30m-------------------------------------------------------------------------------\e[0m\r\n");
+    s_putstring(socket, "\e[2J\e[1;30m-------------------------------------------------------------------------------\e[0m\r\n");
     s_putstring(socket, "User Name        Location                         Times On\r\n");
     s_putstring(socket, "\e[1;30m-------------------------------------------------------------------------------\e[0m\r\n");
     i = 0;

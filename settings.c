@@ -10,7 +10,7 @@ void settings_menu(int sock, struct user_record *user) {
 	char c;
 	
 	while (!dosettings) {
-		s_putstring(sock, "\r\n\e[1;32mYour Settings\r\n");
+		s_putstring(sock, "\e[2J\e[1;32mYour Settings\r\n");
 		s_putstring(sock, "\e[1;30m-------------------------------------------------------------------------------\e[0m\r\n");
 		s_putstring(sock, "\e[0;36mP. \e[1;37mPassword (\e[1;33mNot Shown\e[1;37m)\r\n");
 		sprintf(buffer, "\e[0;36mL. \e[1;37mLocation (\e[1;33m%s\e[1;37m)\r\n", user->location);
