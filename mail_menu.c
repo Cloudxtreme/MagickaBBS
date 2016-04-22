@@ -810,7 +810,7 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 				chars = 0;
 				s_putstring(socket, "\r\n");
 				lines++;
-				if (lines >= 17) {
+				if (lines == 17) {
 					s_putstring(socket, "Press a key to continue...");
 					s_getc(socket);
 					lines = 0;
@@ -824,8 +824,7 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 					strncpy(buffer, &body[ansi], (z - ansi) + 1);
 					buffer[z - ansi + 1] = '\0';
 					s_putstring(socket, buffer);
-				}
-				if (body[z] == 'A') {
+				} else if (body[z] == 'A') {
 					for (i=0;i<atoi(&body[ansi + 2]);i++) {
 						if (lines - 1 >= 0) {
 							s_putstring(socket, "\e[1A");
@@ -834,8 +833,7 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 							break;
 						}
 					}
-				}
-				if (body[z] == 'C') {
+				} else if (body[z] == 'C') {
 					for (i=0;i<atoi(&body[ansi + 2]);i++) {
 						if (chars + 1 <= 79) {
 							s_putstring(socket, "\e[1C");
@@ -844,8 +842,7 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 							break;
 						}
 					}
-				}
-				if (body[z] == 'B') {
+				} else if (body[z] == 'B') {
 					for (i=0;i<atoi(&body[ansi + 2]);i++) {
 						if (lines + 1 <= 17) {
 							s_putstring(socket, "\e[1B");
@@ -853,8 +850,8 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 						} else {
 							break;
 						}
-					}				}
-				if (body[z] == 'D') {
+					}	
+				} else if (body[z] == 'D') {
 					for (i=0;i<atoi(&body[ansi + 2]);i++) {
 						if (chars - 1 >= 0) {
 							s_putstring(socket, "\e[1D");
@@ -863,8 +860,10 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 							break;
 						}
 					}
+				} else {
+					printf("%c\n", body[z]);
 				}
-			} else if (body[z] != '\n') {
+			} else {
 				chars++;
 				s_putchar(socket, body[z]);
 			}
