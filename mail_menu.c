@@ -826,7 +826,7 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 					s_putstring(socket, buffer);
 				} else if (body[z] == 'A') {
 					j = atoi(&body[ansi + 2]);
-					if (j == 0 && ansi + 3 == z) {
+					if (j == 0 && ansi + 2 == z) {
 						j = 1;
 					}
 					for (i=0;i<j;i++) {
@@ -839,7 +839,7 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 					}
 				} else if (body[z] == 'C') {
 					j = atoi(&body[ansi + 2]);
-					if (j == 0 && ansi + 3 == z) {
+					if (j == 0 && ansi + 2 == z) {
 						j = 1;
 					}
 					for (i=0;i<j;i++) {
@@ -852,7 +852,7 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 					}
 				} else if (body[z] == 'B') {
 					j = atoi(&body[ansi + 2]);
-					if (j == 0 && ansi + 3 == z) {
+					if (j == 0 && ansi + 2 == z) {
 						j = 1;
 					}					
 					for (i=0;i<j;i++) {
@@ -865,7 +865,7 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 					}	
 				} else if (body[z] == 'D') {
 					j = atoi(&body[ansi + 2]);
-					if (j == 0 && ansi + 3 == z) {
+					if (j == 0 && ansi + 2 == z) {
 						j = 1;
 					}					
 					for (i=0;i<j;i++) {
