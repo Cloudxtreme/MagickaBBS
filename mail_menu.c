@@ -827,7 +827,7 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 				}
 				if (body[z] == 'A') {
 					for (i=0;i<atoi(&body[ansi + 2]);i++) {
-						if (lines - (i + 1) > 0) {
+						if (lines - (i + 1) >= 0) {
 							s_putstring(socket, "\e[1A");
 							lines--;
 						} else {
@@ -837,7 +837,7 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 				}
 				if (body[z] == 'C') {
 					for (i=0;i<atoi(&body[ansi + 2]);i++) {
-						if (chars + (i + 1) < 79) {
+						if (chars + (i + 1) <= 79) {
 							s_putstring(socket, "\e[1C");
 							chars++;
 						} else {
@@ -847,7 +847,7 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 				}
 				if (body[z] == 'B') {
 					for (i=0;i<atoi(&body[ansi + 2]);i++) {
-						if (lines + (i + 1) < 17) {
+						if (lines + (i + 1) <= 17) {
 							s_putstring(socket, "\e[1B");
 							lines++;
 						} else {
@@ -856,7 +856,7 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 					}				}
 				if (body[z] == 'D') {
 					for (i=0;i<atoi(&body[ansi + 2]);i++) {
-						if (chars - (i + 1) > 0) {
+						if (chars - (i + 1) >= 0) {
 							s_putstring(socket, "\e[1D");
 							chars--;
 						} else {
