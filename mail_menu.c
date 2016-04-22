@@ -1537,6 +1537,7 @@ int mail_menu(int socket, struct user_record *user) {
 										break;
 									}
 								}
+								i++;
 							} else {
 								i = atoi(buffer);
 								if (i < 0) {
