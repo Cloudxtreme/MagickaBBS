@@ -710,7 +710,7 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 	struct fido_addr *from_addr = NULL;
 	struct fido_addr *dest;
 	int wwiv_to = 0;
-	int i;
+	int i, j;
 	char *wwiv_addressee;
 	char *dest_addr;
 	int to_us;
@@ -825,7 +825,11 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 					buffer[z - ansi + 1] = '\0';
 					s_putstring(socket, buffer);
 				} else if (body[z] == 'A') {
-					for (i=0;i<atoi(&body[ansi + 2]);i++) {
+					j = atoi(&body[ansi + 2]);
+					if (j == 0) {
+						j = 1;
+					}
+					for (i=0;i<j;i++) {
 						if (lines - 1 >= 0) {
 							s_putstring(socket, "\e[1A");
 							lines--;
@@ -834,7 +838,11 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 						}
 					}
 				} else if (body[z] == 'C') {
-					for (i=0;i<atoi(&body[ansi + 2]);i++) {
+					j = atoi(&body[ansi + 2]);
+					if (j == 0) {
+						j = 1;
+					}
+					for (i=0;i<j;i++) {
 						if (chars + 1 <= 79) {
 							s_putstring(socket, "\e[1C");
 							chars++;
@@ -843,7 +851,11 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 						}
 					}
 				} else if (body[z] == 'B') {
-					for (i=0;i<atoi(&body[ansi + 2]);i++) {
+					j = atoi(&body[ansi + 2]);
+					if (j == 0) {
+						j = 1;
+					}					
+					for (i=0;i<j;i++) {
 						if (lines + 1 <= 17) {
 							s_putstring(socket, "\e[1B");
 							lines++;
@@ -852,7 +864,11 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 						}
 					}	
 				} else if (body[z] == 'D') {
-					for (i=0;i<atoi(&body[ansi + 2]);i++) {
+					j = atoi(&body[ansi + 2]);
+					if (j == 0) {
+						j = 1;
+					}					
+					for (i=0;i<j;i++) {
 						if (chars - 1 >= 0) {
 							s_putstring(socket, "\e[1D");
 							chars--;
@@ -860,8 +876,6 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 							break;
 						}
 					}
-				} else {
-					printf("%c\n", body[z]);
 				}
 			} else {
 				chars++;
