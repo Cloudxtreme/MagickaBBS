@@ -821,8 +821,8 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 				while (strchr("ABCDEFGHIGJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", body[z]) == NULL)
 					z++;
 				if (body[z] == 'm' || body[z] == 'C') {
-					strncpy(buffer, &body[ansi], ansi - z);
-					buffer[ansi-z] = '\0';
+					strncpy(buffer, &body[ansi], z - ansi);
+					buffer[z - ansi] = '\0';
 					s_putstring(socket, buffer);
 				}
 			} else {
