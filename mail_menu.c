@@ -1186,7 +1186,7 @@ int mail_menu(int socket, struct user_record *user) {
 	int i;
 	int j;
 	int z;
-
+	int k;
 	struct msg_headers *msghs;
 	
 	s_JamBase *jb;
@@ -1526,13 +1526,22 @@ int mail_menu(int socket, struct user_record *user) {
 								jlr.LastReadMsg = 0;
 								jlr.HighReadMsg = 0;
 							}
-							sprintf(buffer, "Start at message [0-%d] ? ", msghs->msg_count - 1);
+							sprintf(buffer, "Start at message [0-%d] or N for New? ", msghs->msg_count - 1);
 							s_putstring(socket, buffer);
 								
 							s_readstring(socket, buffer, 6);
-							i = atoi(buffer);
-							if (i < 0) {
-								i = 0;
+							if (tolower(buffer[0]) == 'n') {
+								k = jlr.HighReadMsg;
+								for (i=0;i<msghs->msg_count;i++) {
+									if (msghs->msgs[i]->msg_no == k) {
+										break;
+									}
+								}
+							} else {
+								i = atoi(buffer);
+								if (i < 0) {
+									i = 0;
+								}
 							}
 							closed = 0;
 							s_putstring(socket, "\e[2J\e[1;37;44m[MSG#] Subject                   From            To              Date          \r\n\e[0m");
