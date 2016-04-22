@@ -835,7 +835,7 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 					chars -= atoi(&body[ansi + 2]);
 				}
 					
-			} else {
+			} else if (body[z] != '\n') {
 				chars++;
 				s_putchar(socket, body[z]);
 			}
