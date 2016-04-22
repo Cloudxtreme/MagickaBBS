@@ -827,7 +827,7 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 				}
 				if (body[z] == 'A') {
 					if (lines >= atoi(&body[ansi + 2])) {
-						lines -= atoi(&body[ansi + 2]);
+						//lines -= atoi(&body[ansi + 2]);
 						strncpy(buffer, &body[ansi], (z - ansi) + 1);
 						buffer[z - ansi + 1] = '\0';
 						s_putstring(socket, buffer);						
