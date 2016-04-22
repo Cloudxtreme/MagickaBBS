@@ -719,6 +719,7 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 	int doquit = 0;
 	int skip_line = 0;
 	int chars = 0;
+	int ansi;
 	
 	jb = open_jam_base(conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->path);
 	if (!jb) {
@@ -816,8 +817,14 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 					s_putstring(socket, "\e[7;1H\e[0J");
 				}
 			} else if (body[z] == '\e' && body[z + 1] == '[') {
+				ansi = z;
 				while (strchr("ABCDEFGHIGJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", body[z]) == NULL)
 					z++;
+				if (body[z] == 'm' || body[z] == 'C') {
+					strncpy(buffer, &body[ansi], ansi - z);
+					buffer[ansi-z] = '\0';
+					s_putstring(socket, buffer);
+				}
 			} else {
 				chars++;
 				s_putchar(socket, body[z]);
