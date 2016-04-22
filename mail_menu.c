@@ -820,14 +820,14 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 				ansi = z;
 				while (strchr("ABCDEFGHIGJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", body[z]) == NULL)
 					z++;
-				if (body[z] == 'm' || body[z] == 'C' || body[z] == 'B' || body[z] == 'D') {
+				if (body[z] == 'm' || body[z] == 'C' || body[z] == 'D') {
 					strncpy(buffer, &body[ansi], (z - ansi) + 1);
 					buffer[z - ansi + 1] = '\0';
 					s_putstring(socket, buffer);
 				}
 				if (body[z] == 'A') {
 					if (lines >= atoi(&body[ansi + 2])) {
-						//lines -= atoi(&body[ansi + 2]);
+						lines -= atoi(&body[ansi + 2]);
 						strncpy(buffer, &body[ansi], (z - ansi) + 1);
 						buffer[z - ansi + 1] = '\0';
 						s_putstring(socket, buffer);						
@@ -842,6 +842,11 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 				}
 				if (body[z] == 'B') {
 					lines += atoi(&body[ansi + 2]);
+					if (lines <= 17) {
+						strncpy(buffer, &body[ansi], (z - ansi) + 1);
+						buffer[z - ansi + 1] = '\0';
+						s_putstring(socket, buffer);
+					} 
 				}
 				if (body[z] == 'D') {
 					chars -= atoi(&body[ansi + 2]);
