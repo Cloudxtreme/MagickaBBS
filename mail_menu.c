@@ -810,7 +810,7 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 				chars = 0;
 				s_putstring(socket, "\r\n");
 				lines++;
-				if (lines == 17) {
+				if (lines >= 17) {
 					s_putstring(socket, "Press a key to continue...");
 					s_getc(socket);
 					lines = 0;
@@ -835,6 +835,10 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 				}
 				if (body[z] == 'C') {
 					chars += atoi(&body[ansi + 2]);
+					if (chars > 79) {
+						lines++;
+						chars -= 79;
+					}
 				}
 				if (body[z] == 'B') {
 					lines += atoi(&body[ansi + 2]);
