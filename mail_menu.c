@@ -750,9 +750,9 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 			sprintf(buffer, "\e[2J\e[1;32mFrom    : \e[1;37m%s\r\n", msghs->msgs[mailno]->from);
 		}
 		s_putstring(socket, buffer);
-		sprintf(buffer, "\e[1;32mTo      : \e[1;37m%-27s \e[1;32mArea     : \e[1;37m%-27s\r\n", msghs->msgs[mailno]->to, conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->name);
+		sprintf(buffer, "\e[1;32mTo      : \e[1;37m%-27.27s \e[1;32mArea     : \e[1;37m%-27.27s\r\n", msghs->msgs[mailno]->to, conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->name);
 		s_putstring(socket, buffer);
-		sprintf(buffer, "\e[1;32mSubject : \e[1;37m%-27s \e[1;32mMsgNo    : \e[1;37m%4d of %4d\r\n", msghs->msgs[mailno]->subject, mailno, msghs->msg_count);
+		sprintf(buffer, "\e[1;32mSubject : \e[1;37m%-27.27s \e[1;32mMsgNo    : \e[1;37m%4d of %4d\r\n", msghs->msgs[mailno]->subject, mailno, msghs->msg_count);
 		s_putstring(socket, buffer);
 		localtime_r((time_t *)&msghs->msgs[mailno]->msg_h->DateWritten, &msg_date);
 		sprintf(buffer, "\e[1;32mDate    : \e[1;37m%s", asctime(&msg_date));
