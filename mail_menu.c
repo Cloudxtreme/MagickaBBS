@@ -752,7 +752,7 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 		s_putstring(socket, buffer);
 		sprintf(buffer, "\e[1;32mTo      : \e[1;37m%-27.27s \e[1;32mArea     : \e[1;37m%-27.27s\r\n", msghs->msgs[mailno]->to, conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->name);
 		s_putstring(socket, buffer);
-		sprintf(buffer, "\e[1;32mSubject : \e[1;37m%-27.27s \e[1;32mMsgNo    : \e[1;37m%4d of %4d\r\n", msghs->msgs[mailno]->subject, mailno, msghs->msg_count);
+		sprintf(buffer, "\e[1;32mSubject : \e[1;37m%-27.27s \e[1;32mMsgNo    : \e[1;37m%4d of %4d\r\n", msghs->msgs[mailno]->subject, mailno + 1, msghs->msg_count);
 		s_putstring(socket, buffer);
 		localtime_r((time_t *)&msghs->msgs[mailno]->msg_h->DateWritten, &msg_date);
 		sprintf(buffer, "\e[1;32mDate    : \e[1;37m%s", asctime(&msg_date));
@@ -1279,6 +1279,48 @@ int mail_menu(int socket, struct user_record *user) {
 			c = lRet[0];
 		}
 		switch(tolower(c)) {
+			case 'd':
+				{
+					s_putstring(socket, "\r\n");
+					// list mail in message base
+					msghs = read_message_headers(user->cur_mail_conf, user->cur_mail_area, user);
+					if (msghs != NULL && msghs->msg_count > 0) {
+						jb = open_jam_base(conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->path);
+						if (!jb) {
+							printf("Error opening JAM base.. %s\n", conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->path);
+							break;
+						} else {
+							if (JAM_ReadLastRead(jb, user->id, &jlr) == JAM_NO_USER) {
+								jlr.LastReadMsg = 0;
+								jlr.HighReadMsg = 0;
+							}
+							JAM_CloseMB(jb);						
+							sprintf(buffer, "Read message [1-%d] or N for new: ", msghs->msg_count);
+							s_putstring(socket, buffer);
+							s_readstring(socket, buffer, 6);
+						
+							if (tolower(buffer[0]) == 'n') {
+								k = jlr.HighReadMsg;
+								for (i=0;i<msghs->msg_count;i++) {
+									if (msghs->msgs[i]->msg_no == k) {
+										break;
+									}
+								}
+								i+=2;
+							} else {
+								i = atoi(buffer);
+							}
+							
+							if (i > 0 && i <= msghs->msg_count) {
+								read_message(socket, user, msghs, i - 1);
+							}	
+						}
+					}
+					if (msghs != NULL) {
+						free_message_headers(msghs);
+					}					
+				}
+				break;
 			case 'p':
 				{
 					if (user->sec_level < conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->write_sec_level) {
@@ -1553,7 +1595,8 @@ int mail_menu(int socket, struct user_record *user) {
 								jlr.LastReadMsg = 0;
 								jlr.HighReadMsg = 0;
 							}
-							sprintf(buffer, "Start at message [0-%d] or N for New? ", msghs->msg_count - 1);
+							JAM_CloseMB(jb);
+							sprintf(buffer, "Start at message [1-%d] or N for New? ", msghs->msg_count);
 							s_putstring(socket, buffer);
 								
 							s_readstring(socket, buffer, 6);
@@ -1564,17 +1607,17 @@ int mail_menu(int socket, struct user_record *user) {
 										break;
 									}
 								}
-								i++;
+								i+=2;
 							} else {
 								i = atoi(buffer);
-								if (i < 0) {
-									i = 0;
+								if (i <= 0) {
+									i = 1;
 								}
 							}
 							closed = 0;
 							s_putstring(socket, "\e[2J\e[1;37;44m[MSG#] Subject                   From            To              Date          \r\n\e[0m");
 								
-							for (j=i;j<msghs->msg_count;j++) {
+							for (j=i-1;j<msghs->msg_count;j++) {
 								localtime_r((time_t *)&msghs->msgs[j]->msg_h->DateWritten, &msg_date);
 								if (msghs->msgs[j]->msg_no > jlr.HighReadMsg) {
 									sprintf(buffer, "\e[1;30m[\e[1;34m%4d\e[1;30m]\e[1;32m*\e[1;37m%-25.25s \e[1;32m%-15.15s \e[1;33m%-15.15s \e[1;35m%02d:%02d %02d-%02d-%02d\e[0m\r\n", j, msghs->msgs[j]->subject, msghs->msgs[j]->from, msghs->msgs[j]->to, msg_date.tm_hour, msg_date.tm_min, msg_date.tm_mday, msg_date.tm_mon + 1, msg_date.tm_year - 100);
@@ -1583,21 +1626,19 @@ int mail_menu(int socket, struct user_record *user) {
 								}
 								s_putstring(socket, buffer);
 								
-								if ((j - i) != 0 && (j - i) % 20 == 0) {
+								if ((j - (i - 1)) != 0 && (j - (i - 1)) % 20 == 0) {
 									sprintf(buffer, "(#) Read Message # (Q) Quit (ENTER) Continue\r\n");
 									s_putstring(socket, buffer);
 									s_readstring(socket, buffer, 6);
 									
 									if (tolower(buffer[0]) == 'q') {
-										JAM_CloseMB(jb);
 										closed = 1;
 										break;
 									} else if (strlen(buffer) > 0) {
 										z = atoi(buffer);
-										if (z >= 0 && z <= msghs->msg_count) {
-											JAM_CloseMB(jb);
+										if (z > 0 && z <= msghs->msg_count) {
 											closed = 1;
-											read_message(socket, user, msghs, z);
+											read_message(socket, user, msghs, z - 1);
 											break;
 										}
 									}
@@ -1611,14 +1652,10 @@ int mail_menu(int socket, struct user_record *user) {
 								s_readstring(socket, buffer, 6);
 								if (strlen(buffer) > 0) {
 									z = atoi(buffer);
-									if (z >= 0 && z <= msghs->msg_count) {
-										JAM_CloseMB(jb);
-										closed = 1;
-										read_message(socket, user, msghs, z);
+									if (z > 0 && z <= msghs->msg_count) {
+										read_message(socket, user, msghs, z - 1);
 									}
 								}
-							
-								JAM_CloseMB(jb);
 							}
 						}
 						
