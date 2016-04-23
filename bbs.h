@@ -87,7 +87,8 @@ struct bbs_config {
 	char *bbs_path;
 	char *log_path;
 	char *script_path;
-	
+	char *echomail_sem;
+	char *netmail_sem;
 	char *default_tagline;
 	
 	char *irc_server;

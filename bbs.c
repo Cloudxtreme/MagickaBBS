@@ -352,7 +352,7 @@ static int handler(void* user, const char* section, const char* name,
 			}
 		} else if (strcasecmp(name, "automessage write level") == 0) {
 			conf->automsgwritelvl = atoi(value);
-		}
+		} 
 	} else if (strcasecmp(section, "paths") == 0){
 		if (strcasecmp(name, "ansi path") == 0) {
 			conf->ansi_path = strdup(value);
@@ -362,6 +362,10 @@ static int handler(void* user, const char* section, const char* name,
 			conf->log_path = strdup(value);
 		} else if (strcasecmp(name, "script path") == 0) {
 			conf->script_path = strdup(value);
+		} else if (strcasecmp(name, "echomail semaphore") == 0) {
+			conf->echomail_sem = strdup(value);
+		} else if (strcasecmp(name, "netmail semaphore") == 0) {
+			conf->netmail_sem = strdup(value);
 		}
 	} else if (strcasecmp(section, "mail conferences") == 0) {
 		if (conf->mail_conference_count == 0) {
@@ -766,6 +770,8 @@ void runbbs(int socket, char *config_path, char *ip) {
 	conf.log_path = NULL;
 	conf.script_path = NULL;
 	conf.automsgwritelvl = 10;
+	conf.echomail_sem = NULL;
+	conf.netmail_sem = NULL;
 	
 	// Load BBS data
 	if (ini_parse(config_path, handler, &conf) <0) {

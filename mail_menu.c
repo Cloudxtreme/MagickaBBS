@@ -5,6 +5,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <fcntl.h>
 #include "jamlib/jam.h"
 #include "bbs.h"
 #include "lua/lua.h"
@@ -720,6 +721,7 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 	int skip_line = 0;
 	int chars = 0;
 	int ansi;
+	int sem_fd;
 	
 	jb = open_jam_base(conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->path);
 	if (!jb) {
@@ -1134,6 +1136,18 @@ void read_message(int socket, struct user_record *user, struct msg_headers *msgh
 					}
 					if (JAM_AddMessage(jb, &jmh, jsp, (char *)replybody, strlen(replybody))) {
 						printf("Failed to add message\n");
+					} else {
+						if (conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->type == TYPE_NETMAIL_AREA) {
+							if (conf.netmail_sem != NULL) {
+								sem_fd = open(conf.netmail_sem, O_RDWR | O_CREAT, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
+								close(sem_fd);
+							}
+						} else if (conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->type == TYPE_ECHOMAIL_AREA) {
+							if (conf.echomail_sem != NULL) {
+								sem_fd = open(conf.echomail_sem, O_RDWR | O_CREAT, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
+								close(sem_fd);
+							}							
+						}
 					}
 									
 					JAM_UnlockMB(jb);
@@ -1220,6 +1234,7 @@ int mail_menu(int socket, struct user_record *user) {
 	char *lRet;
 	lua_State *L;
 	int result;
+	int sem_fd;
 	
 	if (conf.script_path != NULL) {
 		sprintf(buffer, "%s/mailmenu.lua", conf.script_path);
@@ -1499,6 +1514,18 @@ int mail_menu(int socket, struct user_record *user) {
 						
 						if (JAM_AddMessage(jb, &jmh, jsp, (char *)msg, strlen(msg))) {
 							printf("Failed to add message\n");
+						} else {
+							if (conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->type == TYPE_NETMAIL_AREA) {
+								if (conf.netmail_sem != NULL) {
+									sem_fd = open(conf.netmail_sem, O_RDWR | O_CREAT, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
+									close(sem_fd);
+								}
+							} else if (conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->type == TYPE_ECHOMAIL_AREA) {
+								if (conf.echomail_sem != NULL) {
+									sem_fd = open(conf.echomail_sem, O_RDWR | O_CREAT, S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
+									close(sem_fd);
+								}							
+							}
 						}
 							
 						JAM_UnlockMB(jb);
