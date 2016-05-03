@@ -431,7 +431,6 @@ char *editor(int socket, struct user_record *user, char *quote, char *from) {
 	memset(next_line_buffer, 0, 80);
 
 	if (quote != NULL) {
-		//wrap(quote, 65);
 		for (i=0;i<strlen(quote);i++) {
 			if (quote[i] == '\r' || lineat == 67) {
 				if (quotelines == 0) {
@@ -1235,6 +1234,7 @@ int mail_menu(int socket, struct user_record *user) {
 	lua_State *L;
 	int result;
 	int sem_fd;
+	int all_unread = 0;
 	
 	if (conf.script_path != NULL) {
 		sprintf(buffer, "%s/mailmenu.lua", conf.script_path);
@@ -1290,9 +1290,11 @@ int mail_menu(int socket, struct user_record *user) {
 							printf("Error opening JAM base.. %s\n", conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->path);
 							break;
 						} else {
+							all_unread = 0;
 							if (JAM_ReadLastRead(jb, user->id, &jlr) == JAM_NO_USER) {
 								jlr.LastReadMsg = 0;
 								jlr.HighReadMsg = 0;
+								all_unread = 1;
 							}
 							JAM_CloseMB(jb);						
 							sprintf(buffer, "Read message [1-%d] or N for New: ", msghs->msg_count);
@@ -1300,13 +1302,17 @@ int mail_menu(int socket, struct user_record *user) {
 							s_readstring(socket, buffer, 6);
 						
 							if (tolower(buffer[0]) == 'n') {
-								k = jlr.HighReadMsg;
-								for (i=0;i<msghs->msg_count;i++) {
-									if (msghs->msgs[i]->msg_no == k) {
-										break;
+								if (all_unread == 0) {
+									k = jlr.HighReadMsg;
+									for (i=0;i<msghs->msg_count;i++) {
+										if (msghs->msgs[i]->msg_no == k) {
+											break;
+										}
 									}
+									i += 2;
+								} else {
+									i = 1;
 								}
-								i+=2;
 							} else {
 								i = atoi(buffer);
 							}
@@ -1591,9 +1597,11 @@ int mail_menu(int socket, struct user_record *user) {
 							printf("Error opening JAM base.. %s\n", conf.mail_conferences[user->cur_mail_conf]->mail_areas[user->cur_mail_area]->path);
 							break;
 						} else {
+							all_unread = 0;
 							if (JAM_ReadLastRead(jb, user->id, &jlr) == JAM_NO_USER) {
 								jlr.LastReadMsg = 0;
 								jlr.HighReadMsg = 0;
+								all_unread = 1;
 							}
 							JAM_CloseMB(jb);
 							sprintf(buffer, "Start at message [1-%d] or N for New? ", msghs->msg_count);
@@ -1601,13 +1609,17 @@ int mail_menu(int socket, struct user_record *user) {
 								
 							s_readstring(socket, buffer, 6);
 							if (tolower(buffer[0]) == 'n') {
-								k = jlr.HighReadMsg;
-								for (i=0;i<msghs->msg_count;i++) {
-									if (msghs->msgs[i]->msg_no == k) {
-										break;
+								if (all_unread == 0) {
+									k = jlr.HighReadMsg;
+									for (i=0;i<msghs->msg_count;i++) {
+										if (msghs->msgs[i]->msg_no == k) {
+											break;
+										}
 									}
+									i+=2;
+								} else {
+									i = 1;
 								}
-								i+=2;
 							} else {
 								i = atoi(buffer);
 								if (i <= 0) {
